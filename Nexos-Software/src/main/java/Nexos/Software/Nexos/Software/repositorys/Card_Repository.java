@@ -35,7 +35,7 @@ public interface Card_Repository extends  JpaRepository<Card_Entity,String>{
      * @return retorna el entity que guarda la respuesta de la base de datos
      */
     @Query(value = "select * from card where id_card=:idCard", nativeQuery = true)
-    Card_Entity buscardCardBalanceXId(@Param("idCard") String idCard);
+    Card_Entity buscardCardXId(@Param("idCard") String idCard);
 
 
 }

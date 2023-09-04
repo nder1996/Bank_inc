@@ -78,18 +78,18 @@ public class Transaction_Controller {
     @GetMapping("/{transactionId}")
     public ResponseEntity<?> consultarTransaction(@PathVariable String transactionId){
         try {
-             int idTransaction= Integer.parseInt(transactionId);
+
             transactionEntity = new Transaction_Entity();
-            transactionEntity = transactionServices.consultarTransaction(idTransaction);
-            if(transactionEntity.getTransactionDate()!=null){
+            transactionEntity = transactionServices.consultarTransaction(transactionId);
+            if(transactionEntity.getState()!=null){
                 return ResponseEntity.ok(transactionEntity);
             }else{
-                String errorMessage = "No se encontró la transacción con el ID: " + transactionId;
+                String errorMessage = "NO SE ENCONTRÓ LA TRANSACCIÓN CON EL ID: " + transactionId + " -  SOLO SE PUEDE BUSCAR ID NUMÉRICO";
                 return ResponseEntity.ok(errorMessage);
             }
         }catch (Exception e){
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Hubo un error al momento de hacer la consulta", e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "HUBO UN ERROR AL MOMENTO DE HACER LA CONSULTAR EL REGISTRO EN LA BASE DE DATOS", e);
         }
     }
 

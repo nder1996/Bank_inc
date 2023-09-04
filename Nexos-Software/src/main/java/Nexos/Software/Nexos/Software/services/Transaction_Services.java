@@ -96,7 +96,7 @@ public class Transaction_Services {
          if(object.get("price").getAsString().matches("\\d+") && object.get("cardId").getAsString().length()==16){ // verifica si la informacion que se paso por parametro cumple con las condiciones para crear la transaccion
              String idCard = object.get("cardId").getAsString(); // obtiene el id de la tarjeta
              float valorCosto =  Float.valueOf(object.get("price").getAsString()); // obtiene el valor de la transaccion
-             card = cardRepository.buscardCardBalanceXId(idCard); // obtiene el registro de la tarjeta que se obtuvo al pasarle el id  de la tarjeta
+             card = cardRepository.buscardCardXId(idCard); // obtiene el registro de la tarjeta que se obtuvo al pasarle el id  de la tarjeta
              float balanceCard = card.getBalance(); // es el saldo de la tarjeta del cliente
              Date fechaTransaction = new Date(); // obtiene la fecha de hoy
              SimpleDateFormat formatoFecha = new SimpleDateFormat("MM/yyyy"); // formato para convertir la fecha
@@ -116,7 +116,7 @@ public class Transaction_Services {
                          estadoTransaction = "TRANSACCIÓN RECHAZADA"; // no se realizo la trasacion
                  }
          }else{
-             estadoTransaction = "TRANSACCIÓN RECHAZADA - POR FAVOR INGRESE LA INFORMACIÓN DE FORMA CORRECTA"; //
+             estadoTransaction = "TRANSACCIÓN RECHAZADA - POR FAVOR INGRESE LA INFORMACIÓN DE FORMA CORRECTA EL NÚMERO DE LA TARJETA DEBE TENER 16 DÍGITOS Y EL PRECIO EN TIPO DE DATO NUMÉRICO"; //
          }
      }catch (Exception e){
          e.printStackTrace();
@@ -132,10 +132,13 @@ public class Transaction_Services {
      * @param transactionId el id de la transaccion
      * @return devuelve la respuesta de la base de datos en una entity
      */
-    public Transaction_Entity consultarTransaction(int transactionId){
+    public Transaction_Entity consultarTransaction(String transactionId){
         Transaction_Entity transactionEntity = new Transaction_Entity();
         try {
-            transactionEntity = transactionRepository.findTransactionById(transactionId);
+            if(transactionId.matches("\\d+")){
+                int idTransaction= Integer.parseInt(transactionId);
+                transactionEntity = transactionRepository.findTransactionById(idTransaction);
+            }
         }catch (Exception e){
             e.printStackTrace();
             System.out.println("HUBO UN ERROR AL MOMENTO DE CONSULTAR LA TRANSACCIÓN : "+e.getMessage());
@@ -159,26 +162,30 @@ public class Transaction_Services {
             if(object.get("transactionId").getAsString().matches("\\d+") && object.get("cardId").getAsString().matches("\\d+") && object.get("cardId").getAsString().length()==16){ //cumprueba si es tipo numerico
                 String idCard = object.get("cardId").getAsString();
                 int idTransaction = Integer.parseInt(object.get("transactionId").getAsString());
-                card_entity = cardRepository.findById(idCard).orElse(null);
+                card_entity = cardRepository.buscardCardXId(idCard);
                 transactionEntity = transactionRepository.findTransactionById(idTransaction);
-                boolean fecha24H = tieneMasDe24Horas(transactionEntity.getTransactionDate());
-                if(fecha24H==false && transactionEntity.getState().equals("AN")){ // verifica si ya la transaccion ha sido anulada y si es mayor a 4 horas
-                    transactionEntity.setState("AN"); // cambia de esto
-                    float nuevoSaldo = card_entity.getBalance()+transactionEntity.getPrice(); // nuevo saldo de la tarjeta
-                    card_entity.setBalance(nuevoSaldo);
-                    cardRepository.saveAndFlush(card_entity);
-                    transactionRepository.saveAndFlush(transactionEntity);
-                    estadoAnulacion = "SE HA ANULADO LA TRANSACCIÓN";
+                if(card_entity!=null && transactionEntity!=null){
+                    boolean fecha24H = tieneMasDe24Horas(transactionEntity.getTransactionDate());
+                    if(fecha24H==false && !transactionEntity.getState().equals("AN")){ // verifica si ya la transaccion ha sido anulada y si es mayor a 4 horas
+                        transactionEntity.setState("AN"); // cambia de esto
+                        float nuevoSaldo = card_entity.getBalance()+transactionEntity.getPrice(); // nuevo saldo de la tarjeta
+                        card_entity.setBalance(nuevoSaldo);
+                        cardRepository.saveAndFlush(card_entity);
+                        transactionRepository.saveAndFlush(transactionEntity);
+                        estadoAnulacion = "SE HA ANULADO LA TRANSACCIÓN";
+                    }else{
+                        estadoAnulacion = "NO SE PUEDE ANULAR LA TRANSACCIÓN - NO ESTÁ ACTIVO O NO CUMPLE LA CONDICIÓN PARA ANULARSE";
+                    }
                 }else{
-                    estadoAnulacion = "NO SE PUEDE ANULAR LA TRANSACCIÓN";
+                    estadoAnulacion = "NO SE PUEDE ANULAR LA TRANSACCIÓN - NO EXISTE LA TARJETA O LA TRANSACCIÓN";
                 }
             }else{
-                estadoAnulacion = "NO SE PUEDE ANULAR LA TRANSACCIÓN";
+                estadoAnulacion = "HUBO UN ERROR AL MOMENTO DE ANULAR LA TRANSACCIÓN - INGRESE SOLO TIPO DE DATOS NUMÉRICOS" ;
             }
 
         }catch (Exception e){
             e.printStackTrace();
-            System.out.println("HUBO UN ERROR AL MOMENTO DE ANULAR LA CONSULTA : "+e.getMessage());
+            System.out.println("HUBO UN ERROR AL MOMENTO DE ANULAR LA TRANSACCIÓN - INGRESE SOLO TIPO DE DATOS NUMÉRICOS : "+e.getMessage());
         }
 
         return estadoAnulacion;

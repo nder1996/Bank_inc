@@ -89,7 +89,8 @@ public class Card_Service {
                  LocalDate today = LocalDate.now(); // Obtener la fecha actual
                  String expirationDate = ""+today.getMonthValue()+"/"+(today.getYear() + 3); // genera el formato de de la fecha vencimiento de la tarjeta
                  if(numberString.length()<10){  // verifica si la longitud del numero generado es de 10 de lo contrario coloca 0 donde haga falta
-                     for (int i=0;i<(numberString.length()-10);i++){
+                     int limite = 10 - numberString.length() ;
+                     for (int i=0;i<limite;i++){
                          numberString = numberString + "0";
                      }
                  }
@@ -105,7 +106,7 @@ public class Card_Service {
              }
          }catch (Exception e){
              e.printStackTrace();
-             System.out.println("Hubo un error al crear la tarjeta de credito : "+e.getMessage());
+             System.out.println("HUBO UN ERROR AL CREAR LA TARJETA DE CREDITO : "+e.getMessage());
          }
          return cardResultante;
      }
@@ -120,22 +121,27 @@ public class Card_Service {
          String cambio = "";
         Card_Entity newCard = new Card_Entity();
          try {
-             if(idCard.matches("\\d+") && idCard.length()==16){
-                 newCard = cardRepository.findById(idCard).orElse(null);/*BUSCA EL DATO POR EL ID DE LA TARJETA , LLENA TODOS LOS CAMPOS EN NULL SI NO LOS ENCUENTRA*/
-                 if (newCard.getIdCard()!=null) {
+             Gson gson = new Gson();// Crear una instancia de Gson para procesar datos JSON
+             JsonObject object = gson.fromJson(idCard, JsonObject.class);// Parsear la cadena JSON "cardBalance" a un objeto JsonObject
+             String id = object.get("idCard").getAsString(); // Obtener el valor de "idCard" como una cadena
+             if(id.matches("\\d+") && id.length()==16){
+                 newCard = cardRepository.buscardCardXId(idCard);/*BUSCA EL DATO POR EL ID DE LA TARJETA , LLENA TODOS LOS CAMPOS EN NULL SI NO LOS ENCUENTRA*/
+                 if (newCard!=null && !newCard.getState().equals("AC")) {
                      newCard.setState("AC"); /*ACTIVA LA TARJETA */
                      cardRepository.saveAndFlush(newCard);
                      cambio = "TARJETA ACTIVADA";
-                 } else {
+                 } else if(newCard==null) {
                      cambio = "NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS";
+                 }if(newCard!=null && newCard.getState().equals("AC")){
+                     cambio = "LA TARJETA YA SE ENCUENTRA ACTIVADA";
                  }
              }else{
-                 cambio = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO";
+                 cambio = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO O NO INGRESO LOS 16 DÍGITOS DE LA TARJETA";
 
              }
          }catch (Exception e){
              e.printStackTrace();
-             cambio = "HUBO UN ERROR AL ACTUALIZAR LA TARJETA DE CRÉDITO";
+             cambio = "HUBO UN ERROR AL ACTIVAR LA TARJETA";
              System.out.println("Hubo un error al actualizar la tarjeta de credito : "+e.getMessage());
          }
          return cambio;
@@ -153,16 +159,18 @@ public class Card_Service {
         Card_Entity newCard = new Card_Entity();
         try {
             if(idCard.matches("\\d+") && idCard.length()==16){
-                newCard = cardRepository.findById(idCard).orElse(null);
-                if (newCard.getIdCard()!=null) {
+                newCard = cardRepository.buscardCardXId(idCard);
+                if (newCard!=null && !newCard.getState().equals("BL")) {
                     newCard.setState("BL");
                     cardRepository.saveAndFlush(newCard);
                     cambio = "TARJETA BLOQUEADA";
-                } else {
+                }else if(newCard==null) {
                     cambio = "NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS";
+                }if(newCard!=null && newCard.getState().equals("BL")){
+                    cambio = "LA TARJETA YA SE ENCUENTRA BLOQUEADA";
                 }
             }else{
-                cambio = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO";
+                cambio = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO O QUE NO SEA IGUAL A 16 DÍGITOS";
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -186,17 +194,18 @@ public class Card_Service {
             JsonObject object = gson.fromJson(cardBalance, JsonObject.class);// Parsear la cadena JSON "cardBalance" a un objeto JsonObject
             String idCard = object.get("idCard").getAsString(); // Obtener el valor de "idCard" como una cadena
             String balance = object.get("balance").getAsString();// Obtener el valor de "balance" como una cadena
-            if (esFloatValido(cardBalance) && idCard.matches("\\d+")){ //este condicional valida si es tipo de dato float el y verific si el id card corresponde con el formato numerico
-                newCard = cardRepository.findById(idCard).orElse(null); // busca el id y devuelve el registro que encontro por el id
-                if (newCard.getIdCard()!=null) {  // verifica si el registro que encontro es nulo por el id
-                    newCard.setBalance(Float.parseFloat(balance));
+            if (esFloatValido(balance) && idCard.matches("\\d+") && idCard.length()==16){ //este condicional valida si es tipo de dato float el y verific si el id card corresponde con el formato numerico
+                newCard = cardRepository.buscardCardXId(idCard); // busca el id y devuelve el registro que encontro por el id
+                if (newCard!=null && newCard.getState().equals("AC")) {  // verifica si el registro que encontro es nulo por el id
+                    float totalBalance = Float.parseFloat(balance) + newCard.getBalance();
+                    newCard.setBalance(totalBalance);
                     cardRepository.saveAndFlush(newCard); // guarda el registro modificado que se le agrego el saldo nuevo
                     cambio = "SU TARJETA SE HA RECARGADO";
                 } else {
-                    cambio = "NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS";
+                    cambio = "NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS O TARJETA BLOQUEADA O INACTIVA";
                 }
             }else{
-                cambio = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO";
+                cambio = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, DEBE INGRESAR SOLO 16 DÍGITOS PARA EL ID DE LA TARJETA";
             }
 
         }catch (Exception e){
@@ -214,20 +223,35 @@ public class Card_Service {
      * @return retorna el valor obtendo de la consulta , si existe la tarjeta o no
      */
       public Object[] consultarBalance(String idCard){
-        Object[] consulta = new Object[2];
+        Object[] consulta = new Object[3];
         Card_Entity cardConsultada = new Card_Entity();
         try {
-            cardConsultada = cardRepository.buscardCardBalanceXId(idCard);
-            if(cardConsultada.getIdCard()!=null){
-                consulta[0] = "cardId : "+cardConsultada.getIdCard();
-                consulta[1] = "balance : "+ cardConsultada.getBalance();
+            if(idCard.matches("\\d+") && idCard.length()==16){
+                cardConsultada = cardRepository.buscardCardXId(idCard);
+                if(cardConsultada!=null){
+                    consulta[0] = "cardId : "+cardConsultada.getIdCard();
+                    consulta[1] = "balance : "+ cardConsultada.getBalance();
+                    if(cardConsultada.getState().equals("AC")){
+                        consulta[2] = "ESTADO DE TARJETA : ACTIVO";
+                    }if(cardConsultada.getState().equals("IN")){
+                        consulta[2] = "ESTADO DE TARJETA : INACTIVO";
+                    }
+                    if(cardConsultada.getState().equals("BL")){
+                        consulta[2] = "ESTADO DE TARJETA : BLOQUEADO";
+                    }
+                }else{
+                    consulta[0] = "NO EXISTE LA TARJETA";
+                    consulta[1] = "";
+                    consulta[2] = "";
+                }
             }else{
-                consulta[0] = "NO EXISTE LA TARJETA";
-                consulta[1] = "NO EXISTE LA TARJETA";
+                consulta[0] = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, DEBE INGRESAR SOLO 16 DÍGITOS PARA EL ID DE LA TARJETA";
+                consulta[1] = "";
+                consulta[2] = "";
             }
         }catch (Exception e){
             e.printStackTrace();
-            System.out.println("Hubo un error al buscar los datos de la areta de credito : "+e.getMessage());
+            System.out.println("HUBO UN ERROR AL BUSCAR LOS DATOS DE LA TARJETA DE CRÉDITO : "+e.getMessage());
         }
         return consulta;
     }
@@ -242,7 +266,12 @@ public class Card_Service {
      */
     public static boolean esFloatValido(String str) {
         String regex = "[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?";
-        return str.matches(regex);
+        String intRegex = "\\d+";
+        boolean respuestaInt = str.matches(regex);
+        if(str.matches(regex)==false){
+             respuestaInt = str.matches(intRegex);
+        }
+        return respuestaInt;
     }
 }
 

@@ -56,7 +56,7 @@ public class Card_Controller {
             if (newCard.getIdCard() != null) {
                 return ResponseEntity.ok(newCard);
             } else {
-                return ResponseEntity.ok("NO SE CREÓ LA TARJETA - HUBO UN ERROR VERIFIQUE LA INFORMACIÓN INGRESADA");
+                return ResponseEntity.ok("NO SE CREÓ LA TARJETA -  VERIFIQUE LA INFORMACIÓN INGRESADA (DEBEN SER 6 DÍGITOS)");
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -76,9 +76,9 @@ public class Card_Controller {
     public ResponseEntity<String> cardActive(@RequestBody String cardId){
         String estado = "";
         Card_Entity newCard = new Card_Entity();
-        String numeros = cardId.replaceAll("[^0-9]", "");
+        //String numeros = cardId.replaceAll("[^0-9]", "");
         try {
-            estado = cardService.activeCard(numeros);
+            estado = cardService.activeCard(cardId);
             return ResponseEntity.ok(estado);
         }catch (Exception e){
             e.printStackTrace();
@@ -97,9 +97,8 @@ public class Card_Controller {
     public ResponseEntity<String> deleteCard(@PathVariable String cardId){
         String estado = "";
         Card_Entity newCard = new Card_Entity();
-        String numeros = cardId.replaceAll("[^0-9]", "");
         try {
-            estado = cardService.bloqueoCard(numeros);
+            estado = cardService.bloqueoCard(cardId);
             return ResponseEntity.ok(estado);
         }catch (Exception e){
             e.printStackTrace();
@@ -134,12 +133,16 @@ public class Card_Controller {
      * @return Una respuesta con la información del saldo o un mensaje de error.
      */
     @GetMapping("/balance/{cardId}")
-    public ResponseEntity<Object[]> consultarBalance(@PathVariable String cardId){
+    public ResponseEntity<?> consultarBalance(@PathVariable String cardId){
         Card_Entity card = new Card_Entity();
-        Object[] consulta = new Object[2];
+        Object[] consulta = new Object[3];
         try {
             consulta = cardService.consultarBalance(cardId);
-            return ResponseEntity.ok(consulta);
+            if(consulta[1].toString().equals("")){
+                return ResponseEntity.ok(consulta[0]);
+            }else{
+                return ResponseEntity.ok(consulta);
+            }
         }catch (Exception e){
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NO SE ENCONTRÓ EL REGISTRO", e);
