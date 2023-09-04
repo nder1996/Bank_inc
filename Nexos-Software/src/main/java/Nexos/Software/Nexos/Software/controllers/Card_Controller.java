@@ -12,39 +12,66 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 
-//import com.google.gson.JsonElement;
-//import com.google.gson.JsonObject;
+/**
+ * Controlador (Controller) de la entidad "Card_Entity".
+ * Este controlador maneja las solicitudes relacionadas con la entidad "Card_Entity",
+ * incluyendo la exposición de API REST para operaciones CRUD y la gestión de la
+ * lógica de negocio relacionada.
+ */
 
 @RestController
 @RequestMapping("/card")
 public class Card_Controller {
 
 
+    /**
+     * Crea una nueva instancia (objeto) de la clase Card_Service
+     * y asigna esta instancia a la variable cardService
+     */
     Card_Service cardService = new Card_Service();
 
+
+    /**
+     * Constructor de la clase Card_Controller.
+     *
+     * @param cardService El servicio de tarjetas que será inyectado automáticamente por Spring.
+     */
     @Autowired
     public Card_Controller(Card_Service cardService) {
         this.cardService = cardService;
     }
 
 
+    /**
+     * Crea una nueva tarjeta.
+     *
+     * @param productId Identificador del producto asociado a la tarjeta.
+     * @return Una respuesta con la nueva tarjeta creada o un mensaje de error.
+     */
     @GetMapping("/{productId}/number")
-    public ResponseEntity<Card_Entity> createCard(@PathVariable String productId){
+    public ResponseEntity<?> createCard(@PathVariable String productId){
         try {
             Card_Entity newCard = new Card_Entity();
             newCard = cardService.createCard(productId);
             if (newCard.getIdCard() != null) {
                 return ResponseEntity.ok(newCard);
             } else {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.ok("NO SE CREÓ LA TARJETA - HUBO UN ERROR VERIFIQUE LA INFORMACIÓN INGRESADA");
             }
         }catch (Exception e){
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se creo la nueva tarjeta", e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NO SE CREÓ LA TARJETA - HUBO UN ERROR VERIFIQUE LA INFORMACIÓN INGRESADA", e);
         }
 
     }
 
+
+    /**
+     * Activa una tarjeta.
+     *
+     * @param cardId Número de la tarjeta a activar.
+     * @return Una respuesta con el estado de la activación o un mensaje de error.
+     */
     @PostMapping("/enroll")
     public ResponseEntity<String> cardActive(@RequestBody String cardId){
         String estado = "";
@@ -52,17 +79,20 @@ public class Card_Controller {
         String numeros = cardId.replaceAll("[^0-9]", "");
         try {
             estado = cardService.activeCard(numeros);
-            if(estado=="tarjeta activada"){
-                return ResponseEntity.ok("tarjeta activada");
-            }else {
-                return ResponseEntity.ok(estado);
-            }
+            return ResponseEntity.ok(estado);
         }catch (Exception e){
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se actualizo la tarjeta", e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NO SE ACTUALIZÓ LA TARJETA", e);
         }
     }
 
+
+    /**
+     * Bloquea una tarjeta.
+     *
+     * @param cardId Número de la tarjeta a bloquear.
+     * @return Una respuesta con el estado del bloqueo o un mensaje de error.
+     */
     @DeleteMapping("/{cardId}")
     public ResponseEntity<String> deleteCard(@PathVariable String cardId){
         String estado = "";
@@ -70,35 +100,39 @@ public class Card_Controller {
         String numeros = cardId.replaceAll("[^0-9]", "");
         try {
             estado = cardService.bloqueoCard(numeros);
-            if (estado == "tarjeta bloqueada") {
-                return ResponseEntity.ok("tarjeta bloqueada");
-            } else {
-                return ResponseEntity.ok(estado);
-            }
+            return ResponseEntity.ok(estado);
         }catch (Exception e){
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se bloqueo la tarjeta", e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NO SE BLOQUEÓ LA TARJETA", e);
         }
     }
 
 
+    /**
+     * Recarga el saldo de una tarjeta.
+     *
+     * @param cardBalance Información de la recarga de saldo.
+     * @return Una respuesta con el estado de la recarga o un mensaje de error.
+     */
     @PostMapping("/{balance}")
     public ResponseEntity<String> recargarBalance(@RequestBody String cardBalance ){
         String estado = "";
         try {
             estado = cardService.recargarBalance(cardBalance);
-            if (estado == "Su tarjeta se ha recargado") {
-                return ResponseEntity.ok("Su tarjeta se ha recargado");
-            } else {
-                return ResponseEntity.ok(estado);
-            }
+            return ResponseEntity.ok(estado);
         }catch (Exception e){
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se recargado la tarjeta", e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NO SE RECARGÓ LA TARJETA", e);
         }
     }
 
 
+    /**
+     * Consulta el saldo de una tarjeta.
+     *
+     * @param cardId Número de la tarjeta a consultar.
+     * @return Una respuesta con la información del saldo o un mensaje de error.
+     */
     @GetMapping("/balance/{cardId}")
     public ResponseEntity<Object[]> consultarBalance(@PathVariable String cardId){
         Card_Entity card = new Card_Entity();
@@ -108,7 +142,7 @@ public class Card_Controller {
             return ResponseEntity.ok(consulta);
         }catch (Exception e){
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se pudo traer el registro al buscar en la base de datos", e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NO SE ENCONTRÓ EL REGISTRO", e);
         }
 
 

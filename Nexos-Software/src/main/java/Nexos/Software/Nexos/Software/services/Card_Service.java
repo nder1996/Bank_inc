@@ -13,127 +13,207 @@ import java.time.LocalDate;
 import java.util.Random;
 
 
+/**
+ *
+Este archivo de servicios en Java JPA (Java Persistence API) se utiliza para definir lógica de
+ negocio y operaciones relacionadas con la base de datos. Los servicios encapsulan
+ la funcionalidad que se debe realizar en las entidades JPA, como crear, leer, actualizar
+ y eliminar registros, así como otras operaciones específicas de la aplicación.
+ */
+
+
+
+
+
 @Service
 public class Card_Service {
 
 
-
-    @Autowired
+    /**
+     *  es una referencia a un objeto de tipo Card_Repository
+     */
+    @Autowired /* Se escribe esta anotación para inyectar las dependencias de manera automática */
     private Card_Repository cardRepository;
 
 
-    @PersistenceContext
+    /**
+     * EntityManager Es una interfaz que forma parte de Java Persistence API (JPA) y
+     *se utiliza para interactuar con la base de datos en aplicaciones que utilizan JPA para el acceso a datos.
+     */
+    @PersistenceContext /* esta annotacion  inyecta las dependencias necesarias para comunicarme con la base de datos */
     private EntityManager entityManager;
+    /**
+     EntityManager es una interfaz de Java Persistence API (JPA)
+     que se utiliza para interactuar con la base de datos. Esta interfaz proporciona métodos
+     para realizar operaciones de persistencia, como guardar y recuperar datos de la base de datos
+     */
 
 
-     Card_Entity card_entity = new Card_Entity();
 
 
+    /**
+     * Crea una nueva instancia (objeto) de la clase Card_Entity
+     * y asigna esta instancia a la variable card_entity
+     */
+    Card_Entity card_entity = new Card_Entity();
+
+
+
+    /**
+     * Constructor de la clase Card_Service
+     * Este constructor crea una instancia de la clase Card_Service.
+     * Puede ser utilizado para inicializar objetos de esta clase.
+     */
     public  Card_Service(){}
 
 
-     /*
-     * ESTADOS DE LA TARJETA ACTIVA (AC) - INACTIVA - (IN) - BLOQUEADA (BL)
-     * */
+    /**
+     * Este método se utiliza para crear una nueva tarjeta de
+     * crédito con los requerimientos de la documentación
+     * @param numProducto // el id del producto
+     * @return //  retorna los datos de la tarjeta creada
+     *
+     */
      public Card_Entity createCard(String numProducto){
-         Card_Entity newCard = new Card_Entity();
-         Card_Entity  Card = new Card_Entity();
-         Random random = new Random();
-         long min = 1_000_000_000L;
-         long max = 9_999_999_9L;
-         long number = random.nextLong() % (max - min + 1) + min;
+         Card_Entity cardResultante  = new Card_Entity(); /* Instancia un nuevo objecto*/
+         Card_Entity newCard = new Card_Entity(); /*instancia un nuevo objecto*/
          try {
-             String numberString = number + "";
-             LocalDate today = LocalDate.now();
-             String expirationDate = ""+today.getMonthValue()+"/"+(today.getYear() + 3);
-             if(numberString.length()<10){
-                 for (int i=0;i<(numberString.length()-10);i++){
-                     numberString = numberString + "0";
+             Random random = new Random(); /* Este objeto se utiliza para generar números aleatorios. */
+             // Definir un rango de números enteros largos
+             long min = 1_000_000_000L; // El valor mínimo en el rango
+             long max = 9_999_999_9L; // El valor máximo en el rango
+             long numberAleatorio = random.nextLong() % (max - min + 1) + min; // Generar un número aleatorio dentro de un rango específico
+
+             if(numProducto.matches("\\d+") && numProducto.length()==6){ /*Este condicional valida que el dato de entrada tiene solo datos de tipo numerico y que tenga 6 digitos*/
+                 String numberString = numberAleatorio + ""; /*convierte el numero aleatorio en tipo de dato entero*/
+                 LocalDate today = LocalDate.now(); // Obtener la fecha actual
+                 String expirationDate = ""+today.getMonthValue()+"/"+(today.getYear() + 3); // genera el formato de de la fecha vencimiento de la tarjeta
+                 if(numberString.length()<10){  // verifica si la longitud del numero generado es de 10 de lo contrario coloca 0 donde haga falta
+                     for (int i=0;i<(numberString.length()-10);i++){
+                         numberString = numberString + "0";
+                     }
                  }
+                 String idCard = "" + numberString + numProducto; // se crea el id de la tarjeta con los 10 numeros generados aleatorios y los 6 numeros que ingreso el usuario
+                 newCard.setIdCard(idCard);
+                 newCard.setExpirationDate(expirationDate);
+                 /**
+                  *ESTADOS DE LA TARJETA ACTIVA (AC) - INACTIVA - (IN) - BLOQUEADA (BL)
+                  */
+                 newCard.setState("IN");
+                 newCard.setBalance(0.0F);
+                 cardResultante  = cardRepository.saveAndFlush(newCard);// guarda los datos en la base de datos y esta se actualice
              }
-             String idCard = "" + numberString + numProducto;
-             newCard.setIdCard(idCard);
-             newCard.setExpirationDate(expirationDate);
-             newCard.setState("IN");
-             newCard.setBalance(0.0F);
-             Card  = cardRepository.saveAndFlush(newCard);
          }catch (Exception e){
              e.printStackTrace();
              System.out.println("Hubo un error al crear la tarjeta de credito : "+e.getMessage());
          }
-         return Card;
+         return cardResultante;
      }
 
+
+    /**
+     * este metodo activa la tarjetas y devuelve el mensaje del estado si fue activada o no
+     * @param idCard // es el id de la tarjeta
+     * @return // devuelve el estado de la operacion si fue activado o no o si hubo un error
+     */
     public String activeCard(String idCard){
          String cambio = "";
         Card_Entity newCard = new Card_Entity();
          try {
-             newCard = cardRepository.findById(idCard).orElse(null);
-             if (newCard.getIdCard()!=null) {
-                 newCard.setState("AC");
-                 cardRepository.saveAndFlush(newCard);
-                 cambio = "tarjeta activada";
-             } else {
-                 cambio = "no existe el id de la tarjeta en la base de datos";
+             if(idCard.matches("\\d+") && idCard.length()==16){
+                 newCard = cardRepository.findById(idCard).orElse(null);/*BUSCA EL DATO POR EL ID DE LA TARJETA , LLENA TODOS LOS CAMPOS EN NULL SI NO LOS ENCUENTRA*/
+                 if (newCard.getIdCard()!=null) {
+                     newCard.setState("AC"); /*ACTIVA LA TARJETA */
+                     cardRepository.saveAndFlush(newCard);
+                     cambio = "TARJETA ACTIVADA";
+                 } else {
+                     cambio = "NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS";
+                 }
+             }else{
+                 cambio = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO";
+
              }
          }catch (Exception e){
              e.printStackTrace();
-             cambio = "Hubo un error al actualizar la tarjeta de credito";
+             cambio = "HUBO UN ERROR AL ACTUALIZAR LA TARJETA DE CRÉDITO";
              System.out.println("Hubo un error al actualizar la tarjeta de credito : "+e.getMessage());
          }
          return cambio;
     }
 
 
-
-
+    /**
+     * Este metodo cambia de estado la tarjeta a BL (bloqueado)
+     * @param idCard // el id de la tarjeta que se quiere bloquear
+     * @return // retorna la respuesta de la  operacion si existe manda el mensaje cambio y si no manda un mensaje
+     * que no se encontro tarjeta relacionada con el id.
+     */
     public String bloqueoCard(String idCard){
         String cambio = "";
         Card_Entity newCard = new Card_Entity();
         try {
-            newCard = cardRepository.findById(idCard).orElse(null);
-            if (newCard.getIdCard()!=null) {
-                newCard.setState("BL");
-                cardRepository.saveAndFlush(newCard);
-                cambio = "tarjeta bloqueada";
-            } else {
-                cambio = "no existe el id de la tarjeta en la base de datos";
+            if(idCard.matches("\\d+") && idCard.length()==16){
+                newCard = cardRepository.findById(idCard).orElse(null);
+                if (newCard.getIdCard()!=null) {
+                    newCard.setState("BL");
+                    cardRepository.saveAndFlush(newCard);
+                    cambio = "TARJETA BLOQUEADA";
+                } else {
+                    cambio = "NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS";
+                }
+            }else{
+                cambio = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO";
             }
         }catch (Exception e){
             e.printStackTrace();
-            cambio = "Hubo un error al bloquear la tarjeta de credito";
+            cambio = "HUBO UN ERROR AL BLOQUEAR LA TARJETA DE CRÉDITO";
             System.out.println("Hubo un error al bloquear la tarjeta de credito : "+e.getMessage());
         }
         return cambio;
     }
 
 
+    /**
+     *  Este metodo realiza la recarga de la tarjeta
+     * @param cardBalance recibe por parametro un string que contiene el id de la tarjeta y el saldo a recargar
+     * @return retorna un mensaje  del estado de la operacion si se realizo si o no.
+     */
     public String recargarBalance(String cardBalance){
         String cambio = "";
         Card_Entity newCard = new Card_Entity();
         try {
-            Gson gson = new Gson();
-            JsonObject object = gson.fromJson(cardBalance, JsonObject.class);
-            String idCard = object.get("idCard").getAsString();
-            String balance = object.get("balance").getAsString();
-            newCard = cardRepository.findById(idCard).orElse(null);
-            if (newCard.getIdCard()!=null) {
-                newCard.setBalance(Float.parseFloat(balance));
-                cardRepository.saveAndFlush(newCard);
-                cambio = "Su tarjeta se ha recargado";
-            } else {
-                cambio = "no existe el id de la tarjeta en la base de datos";
+            Gson gson = new Gson();// Crear una instancia de Gson para procesar datos JSON
+            JsonObject object = gson.fromJson(cardBalance, JsonObject.class);// Parsear la cadena JSON "cardBalance" a un objeto JsonObject
+            String idCard = object.get("idCard").getAsString(); // Obtener el valor de "idCard" como una cadena
+            String balance = object.get("balance").getAsString();// Obtener el valor de "balance" como una cadena
+            if (esFloatValido(cardBalance) && idCard.matches("\\d+")){ //este condicional valida si es tipo de dato float el y verific si el id card corresponde con el formato numerico
+                newCard = cardRepository.findById(idCard).orElse(null); // busca el id y devuelve el registro que encontro por el id
+                if (newCard.getIdCard()!=null) {  // verifica si el registro que encontro es nulo por el id
+                    newCard.setBalance(Float.parseFloat(balance));
+                    cardRepository.saveAndFlush(newCard); // guarda el registro modificado que se le agrego el saldo nuevo
+                    cambio = "SU TARJETA SE HA RECARGADO";
+                } else {
+                    cambio = "NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS";
+                }
+            }else{
+                cambio = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO";
             }
+
         }catch (Exception e){
             e.printStackTrace();
-            cambio = "Hubo un error al momento de recargar su tarjeta de credito";
+            cambio = "HUBO UN ERROR AL MOMENTO DE RECARGAR SU TARJETA DE CRÉDITO";
             System.out.println("Hubo un error al momento de recargar su tarjeta de credito : "+e.getMessage());
         }
         return cambio;
     }
 
 
-    public Object[] consultarBalance(String idCard){
+    /**
+     * Este metodo se usa para para buscar la tarjeta y verificar su saldo
+     * @param idCard el id de la tarjeta
+     * @return retorna el valor obtendo de la consulta , si existe la tarjeta o no
+     */
+      public Object[] consultarBalance(String idCard){
         Object[] consulta = new Object[2];
         Card_Entity cardConsultada = new Card_Entity();
         try {
@@ -153,4 +233,21 @@ public class Card_Service {
     }
 
 
+    // Método para verificar si un String es un número float válido
+
+    /**
+     * Método para verificar si un String es un número float válido
+     * @param str recibe el string que quiere verificar
+     * @return devuelve true si es float y si es false no es float
+     */
+    public static boolean esFloatValido(String str) {
+        String regex = "[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?";
+        return str.matches(regex);
+    }
 }
+
+
+
+
+
+
