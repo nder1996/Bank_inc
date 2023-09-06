@@ -4,8 +4,8 @@ import Nexos.Software.Nexos.Software.entitys.Card_Entity;
 import Nexos.Software.Nexos.Software.entitys.Transaction_Entity;
 import Nexos.Software.Nexos.Software.repositorys.Card_Repository;
 import Nexos.Software.Nexos.Software.repositorys.Transaction_Repository;
-import Nexos.Software.Nexos.Software.services.Card_Service;
-import Nexos.Software.Nexos.Software.services.Transaction_Services;
+import Nexos.Software.Nexos.Software.services.CardService;
+import Nexos.Software.Nexos.Software.services.TransactionServices;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -20,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class Transaction_ControllerTest {
+class TransactionControllerTest {
 
 
 
@@ -28,18 +28,18 @@ class Transaction_ControllerTest {
     private MockMvc mockMvc;
 
     @InjectMocks
-    private Card_Controller cardController;
+    private CardController cardController;
 
     @InjectMocks
-    private Transaction_Controller transactionController;
+    private TransactionController transactionController;
 
     private Card_Entity cardEntity = new Card_Entity();
 
     @Mock
-    private Card_Service cardService;
+    private CardService cardService;
 
     @Mock
-    private Transaction_Services transactionServices;
+    private TransactionServices transactionServices;
 
 
     @Autowired

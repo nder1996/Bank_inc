@@ -3,7 +3,7 @@ package Nexos.Software.Nexos.Software.controllers;
 
 import Nexos.Software.Nexos.Software.entitys.Transaction_Entity;
 
-import Nexos.Software.Nexos.Software.services.Transaction_Services;
+import Nexos.Software.Nexos.Software.services.TransactionServices;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,13 +20,13 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @RestController
 @RequestMapping("/transaction")
-public class Transaction_Controller {
+public class TransactionController {
 
     /**
      * Crea una nueva instancia (objeto) de la clase Transaction_Services
      * y asigna esta instancia a la variable transactionServices
      */
-    Transaction_Services transactionServices = new Transaction_Services();
+    TransactionServices transactionServices = new TransactionServices();
 
     /**
      * Crea una nueva instancia (objeto) de la clase Transaction_Entity
@@ -43,7 +43,7 @@ public class Transaction_Controller {
      * @param transactionServices El servicio de transacciones que será inyectado automáticamente por Spring.
      */
     @Autowired
-    public Transaction_Controller(Transaction_Services transactionServices) {
+    public TransactionController(TransactionServices transactionServices) {
         this.transactionServices = transactionServices;
     }
 

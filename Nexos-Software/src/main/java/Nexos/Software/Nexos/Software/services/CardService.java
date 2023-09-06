@@ -27,7 +27,7 @@ Este archivo de servicios en Java JPA (Java Persistence API) se utiliza para def
 
 
 @Service
-public class Card_Service {
+public class CardService {
 
 
     /**
@@ -65,9 +65,9 @@ public class Card_Service {
      * Este constructor crea una instancia de la clase Card_Service.
      * Puede ser utilizado para inicializar objetos de esta clase.
      */
-    public  Card_Service(){}
+    public CardService(){}
 
-    public Card_Service(Card_Repository cardRepository){
+    public CardService(Card_Repository cardRepository){
         this.cardRepository= cardRepository;
     }
 

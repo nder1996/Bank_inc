@@ -4,7 +4,6 @@ import Nexos.Software.Nexos.Software.entitys.Card_Entity;
 import Nexos.Software.Nexos.Software.repositorys.Card_Repository;
 import com.google.gson.JsonSyntaxException;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -26,11 +25,11 @@ import static org.mockito.Mockito.times;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-class Card_ServiceTest {
+class CardServiceTest {
 
 
     @Autowired
-    private Card_Service cardService; // Se inyecta automáticamente el servicio real
+    private CardService cardService; // Se inyecta automáticamente el servicio real
 
     @MockBean
     private Card_Repository cardRepository; // Se utiliza una simulación del repositorio
@@ -78,9 +77,9 @@ class Card_ServiceTest {
     @Test
     public void testActiveCard() {
         try {
-            cardService = new Card_Service();
+            cardService = new CardService();
             Card_Repository cardRepository = mock(Card_Repository.class);
-            Card_Service cardService = new Card_Service(cardRepository);
+            CardService cardService = new CardService(cardRepository);
             Card_Entity existingCard = new Card_Entity();
             existingCard.setIdCard("1234567890123456");
             existingCard.setState("IN"); // Tarjeta inactiva
@@ -114,9 +113,9 @@ class Card_ServiceTest {
     public void testActiveCardXCasosDesfavoravle() {
         try {
             // Configuración inicial
-            cardService = new Card_Service();
+            cardService = new CardService();
             Card_Repository cardRepository = mock(Card_Repository.class);
-            Card_Service cardService = new Card_Service(cardRepository);
+            CardService cardService = new CardService(cardRepository);
 
             // Caso 1: JSON inválido
             String invalidJson = "invalid_json_format";
@@ -213,7 +212,7 @@ class Card_ServiceTest {
             Card_Entity activeCard = new Card_Entity();
             activeCard.setState("AC"); // Tarjeta activa
             Card_Repository cardRepository1 = mock(Card_Repository.class);
-            Card_Service cardService1 = new Card_Service(cardRepository1);
+            CardService cardService1 = new CardService(cardRepository1);
             when(cardRepository1.buscardCardXId(anyString())).thenReturn(activeCard);
             String result1 = cardService1.bloqueoCard(validJson1);
             assertEquals("TARJETA BLOQUEADA", result1);
@@ -226,7 +225,7 @@ class Card_ServiceTest {
             Card_Entity blockedCard = new Card_Entity();
             blockedCard.setState("BL"); // Tarjeta bloqueada
             Card_Repository cardRepository2 = mock(Card_Repository.class);
-            Card_Service cardService2 = new Card_Service(cardRepository2);
+            CardService cardService2 = new CardService(cardRepository2);
             when(cardRepository2.buscardCardXId(anyString())).thenReturn(blockedCard);
             String result2 = cardService2.bloqueoCard(validJson2);
             assertEquals("YA SE ENCUENTRA BLOQUEADA ESTA TARJETA", result2);
@@ -236,7 +235,7 @@ class Card_ServiceTest {
             // Caso 3: Intento de bloqueo en una tarjeta que no existe
             String validJson3 = "{\"idCard\":\"1234567890123456\"}";
             Card_Repository cardRepository3 = mock(Card_Repository.class);
-            Card_Service cardService3 = new Card_Service(cardRepository3);
+            CardService cardService3 = new CardService(cardRepository3);
             when(cardRepository3.buscardCardXId(anyString())).thenReturn(null);
             String result3 = cardService3.bloqueoCard(validJson3);
             assertEquals("NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS", result3);
@@ -246,7 +245,7 @@ class Card_ServiceTest {
             // Caso 4: Intento de bloqueo con JSON inválido
             String invalidJson = "invalid_json_format";
             Card_Repository cardRepository4 = mock(Card_Repository.class);
-            Card_Service cardService4 = new Card_Service(cardRepository4);
+            CardService cardService4 = new CardService(cardRepository4);
             String result4 = cardService4.bloqueoCard(invalidJson);
             assertEquals("NO INGRESASTE UN JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON", result4);
             Mockito.verifyNoInteractions(cardRepository4);
@@ -317,7 +316,7 @@ class Card_ServiceTest {
             // Caso 1: JSON no válido
             String invalidJson = "invalid_json_string";
             Card_Repository cardRepository1 = mock(Card_Repository.class);
-            Card_Service cardService1 = new Card_Service(cardRepository1);
+            CardService cardService1 = new CardService(cardRepository1);
 
             Object[] result1 = new Object[]{cardService1.recargarBalance(invalidJson)};
             Object[] expectedResult1 = {"NO INGRESASTE UN JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON", "", ""};
@@ -329,7 +328,7 @@ class Card_ServiceTest {
             // Caso 2: ID de tarjeta inválido (menos de 16 dígitos)
             String validJson = "{\"idCard\":\"12345\",\"balance\":\"100.0\"}";
             Card_Repository cardRepository2 = mock(Card_Repository.class);
-            Card_Service cardService2 = new Card_Service(cardRepository2);
+            CardService cardService2 = new CardService(cardRepository2);
 
             Object[] result2 = new Object[]{cardService2.recargarBalance(validJson)};
             Object[] expectedResult2 = {"EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, DEBE INGRESAR SOLO 16 DÍGITOS PARA EL ID DE LA TARJETA", "", ""};
@@ -341,7 +340,7 @@ class Card_ServiceTest {
             // Caso 3: Tarjeta no encontrada en el repositorio
             String validJson3 = "{\"idCard\":\"1234567890123456\",\"balance\":\"100.0\"}";
             Card_Repository cardRepository3 = mock(Card_Repository.class);
-            Card_Service cardService3 = new Card_Service(cardRepository3);
+            CardService cardService3 = new CardService(cardRepository3);
 
             when(cardRepository3.buscardCardXId(anyString())).thenReturn(null);
 
@@ -356,7 +355,7 @@ class Card_ServiceTest {
             // Caso 4: Tarjeta bloqueada o inactiva
             String validJson4 = "{\"idCard\":\"1234567890123456\",\"balance\":\"100.0\"}";
             Card_Repository cardRepository4 = mock(Card_Repository.class);
-            Card_Service cardService4 = new Card_Service(cardRepository4);
+            CardService cardService4 = new CardService(cardRepository4);
             Card_Entity blockedCard = new Card_Entity();
             blockedCard.setState("BL");
 
@@ -436,7 +435,7 @@ class Card_ServiceTest {
             // Caso 1: ID de tarjeta inválido (menos de 16 dígitos)
             String invalidIdCard1 = "12345";
             Card_Repository cardRepository1 = mock(Card_Repository.class);
-            Card_Service cardService1 = new Card_Service(cardRepository1);
+            CardService cardService1 = new CardService(cardRepository1);
 
             Object[] result1 = cardService1.consultarBalance(invalidIdCard1);
             Object[] expectedResult1 = {
@@ -452,7 +451,7 @@ class Card_ServiceTest {
             // Caso 2: Tarjeta no encontrada en el repositorio
             String validIdCard = "1234567890123456"; // Supongamos que esta tarjeta existe
             Card_Repository cardRepository2 = mock(Card_Repository.class);
-            Card_Service cardService2 = new Card_Service(cardRepository2);
+            CardService cardService2 = new CardService(cardRepository2);
 
             when(cardRepository2.buscardCardXId(eq(validIdCard))).thenReturn(null);
 

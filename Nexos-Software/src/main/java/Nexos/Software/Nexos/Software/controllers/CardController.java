@@ -2,9 +2,7 @@ package Nexos.Software.Nexos.Software.controllers;
 
 
 import Nexos.Software.Nexos.Software.entitys.Card_Entity;
-import Nexos.Software.Nexos.Software.services.Card_Service;
-import com.fasterxml.jackson.core.JsonParser;
-import com.google.gson.Gson;
+import Nexos.Software.Nexos.Software.services.CardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +19,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/card")
-public class Card_Controller {
+public class CardController {
 
 
     /**
      * Crea una nueva instancia (objeto) de la clase Card_Service
      * y asigna esta instancia a la variable cardService
      */
-    Card_Service cardService = new Card_Service();
+    CardService cardService = new CardService();
 
 
     /**
@@ -37,7 +35,7 @@ public class Card_Controller {
      * @param cardService El servicio de tarjetas que será inyectado automáticamente por Spring.
      */
     @Autowired
-    public Card_Controller(Card_Service cardService) {
+    public CardController(CardService cardService) {
         this.cardService = cardService;
     }
 

@@ -2,7 +2,7 @@ package Nexos.Software.Nexos.Software.controllers;
 
 import Nexos.Software.Nexos.Software.entitys.Card_Entity;
 import Nexos.Software.Nexos.Software.repositorys.Card_Repository;
-import Nexos.Software.Nexos.Software.services.Card_Service;
+import Nexos.Software.Nexos.Software.services.CardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,19 +24,19 @@ import static org.mockito.Mockito.*;
 
 
 
-class Card_ControllerTest {
+class CardControllerTest {
 
 
     @Autowired
     private MockMvc mockMvc;
 
     @InjectMocks
-    private Card_Controller cardController;
+    private CardController cardController;
     
     private Card_Entity cardEntity = new Card_Entity();
 
     @Mock
-    private Card_Service cardService;
+    private CardService cardService;
 
 
     @Autowired

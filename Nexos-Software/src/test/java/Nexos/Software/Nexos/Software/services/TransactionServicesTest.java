@@ -23,15 +23,15 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-class Transaction_ServicesTest {
+class TransactionServicesTest {
 
 
 
     @Autowired
-    private Transaction_Services transactionServices;
+    private TransactionServices transactionServices;
 
     @Autowired
-    private Card_Service cardService;
+    private CardService cardService;
 
 
     @MockBean

@@ -9,15 +9,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 
@@ -32,7 +28,7 @@ import java.util.Date;
 
 
 @Service
-public class Transaction_Services {
+public class TransactionServices {
 
 
 
@@ -72,7 +68,7 @@ public class Transaction_Services {
      * Este constructor crea una instancia de la clase Transaction_Services.
      * Puede ser utilizado para inicializar objetos de esta clase.
      */
-    public  Transaction_Services(){}
+    public TransactionServices(){}
 
 
 
