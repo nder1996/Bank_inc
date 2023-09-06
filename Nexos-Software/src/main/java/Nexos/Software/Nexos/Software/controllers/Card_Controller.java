@@ -52,18 +52,21 @@ public class Card_Controller {
     public ResponseEntity<?> createCard(@PathVariable String productId){
         try {
             Card_Entity newCard = new Card_Entity();
-            newCard = cardService.createCard(productId);
-            if (newCard.getIdCard() != null) {
+            newCard  = cardService.createCard(productId);
+            if(newCard == null){
+                return ResponseEntity.ok("NO SE CREÓ LA TARJETA -  VERIFIQUE LA INFORMACIÓN INGRESADA (DEBEN SER 6 DÍGITOS)");
+            }
+            if (   newCard.getIdCard() != null) {
                 return ResponseEntity.ok(newCard);
-            } else {
+            }else{
                 return ResponseEntity.ok("NO SE CREÓ LA TARJETA -  VERIFIQUE LA INFORMACIÓN INGRESADA (DEBEN SER 6 DÍGITOS)");
             }
         }catch (Exception e){
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NO SE CREÓ LA TARJETA - HUBO UN ERROR VERIFIQUE LA INFORMACIÓN INGRESADA", e);
         }
-
     }
+
 
 
     /**
@@ -75,8 +78,6 @@ public class Card_Controller {
     @PostMapping("/enroll")
     public ResponseEntity<String> cardActive(@RequestBody String cardId){
         String estado = "";
-        Card_Entity newCard = new Card_Entity();
-        //String numeros = cardId.replaceAll("[^0-9]", "");
         try {
             estado = cardService.activeCard(cardId);
             return ResponseEntity.ok(estado);

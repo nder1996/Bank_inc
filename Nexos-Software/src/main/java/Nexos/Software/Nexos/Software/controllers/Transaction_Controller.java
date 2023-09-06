@@ -109,7 +109,8 @@ public class Transaction_Controller {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Hubo un error al momento de hacer la anulacion", e);
         }
-
     }
+
+
 
 }
