@@ -7,6 +7,7 @@ import Nexos.Software.Nexos.Software.repositorys.Card_Repository;
 import Nexos.Software.Nexos.Software.repositorys.Transaction_Repository;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -83,48 +84,51 @@ public class Transaction_Services {
      */
     public String createTransaction(String transaction){
         String estadoTransaction = "";
-
-
         Card_Entity card = new Card_Entity();
         Transaction_Entity transactionEntity = new Transaction_Entity();
      try {
-         //ESTADO DE LA TRANSACCION APROBADA (AP) - ANULADA (AN)
-
-         Gson gson = new Gson(); // Crear una instancia de Gson para procesar datos JSON
-         JsonObject object = gson.fromJson(transaction, JsonObject.class); // Parsear la cadena JSON "cardBalance" a un objeto JsonObject
-
-         if(object.get("price").getAsString().matches("\\d+") && object.get("cardId").getAsString().length()==16){ // verifica si la informacion que se paso por parametro cumple con las condiciones para crear la transaccion
-             String idCard = object.get("cardId").getAsString(); // obtiene el id de la tarjeta
-             float valorCosto =  Float.valueOf(object.get("price").getAsString()); // obtiene el valor de la transaccion
-             card = cardRepository.buscardCardXId(idCard); // obtiene el registro de la tarjeta que se obtuvo al pasarle el id  de la tarjeta
-             float balanceCard = card.getBalance(); // es el saldo de la tarjeta del cliente
-             Date fechaTransaction = new Date(); // obtiene la fecha de hoy
-             SimpleDateFormat formatoFecha = new SimpleDateFormat("MM/yyyy"); // formato para convertir la fecha
-             if(card.getState().equals("AC")  && compararFechas(formatoFecha.parse(card.getExpirationDate()), fechaTransaction) >0 && card.getBalance() >= valorCosto ){ //verifica si la tarjeta esta activada , si la fecha de vencimiento es mayor a la fecha acual , si la tarjeta tiene el saldo para realizar la compra
-                 transactionEntity.setTransactionDate(fechaTransaction); // guarda la fecha actual en la entitad de transaccion
-                 transactionEntity.setState("AP"); // aprueba la transaccion
-                 transactionEntity.setCard(card); // guarda el registro de la card ya que la relacion es uno a muchos
-                 transactionEntity.setPrice(valorCosto); // el costo de la transaccion
-                 float Total = balanceCard - valorCosto ; // el total de la tarjeta de credito
-                 card.setBalance(Total); // guarda el saldo restante de la tarjeta de credito
-                 cardRepository.saveAndFlush(card); // guarda la entitad modificada con el nuevo saldo del registro
-                 transactionRepository.insertTransaction(transactionEntity.getTransactionDate() , transactionEntity.getPrice()
-                         , transactionEntity.getState() ,transactionEntity.getCard().getIdCard()
-                 ); /// guarda por nativequery el nuevo registro en la tabla transaccion
-                 estadoTransaction = "SE REALIZÓ LA TRANSACCIÓN CON ÉXITO"; // mensaje de exito
+         if(isValidJson(transaction)==true){
+             //ESTADO DE LA TRANSACCION APROBADA (AP) - ANULADA (AN)
+             Gson gson = new Gson(); // Crear una instancia de Gson para procesar datos JSON
+             JsonObject object = gson.fromJson(transaction, JsonObject.class); // Parsear la cadena JSON "cardBalance" a un objeto JsonObject
+             if(object.get("price").getAsString().matches("\\d+") && object.get("cardId").getAsString().length()==16){ // verifica si la informacion que se paso por parametro cumple con las condiciones para crear la transaccion
+                 String idCard = object.get("cardId").getAsString(); // obtiene el id de la tarjeta
+                 float valorCosto =  Float.valueOf(object.get("price").getAsString()); // obtiene el valor de la transaccion
+                 card = cardRepository.buscardCardXId(idCard); // obtiene el registro de la tarjeta que se obtuvo al pasarle el id  de la tarjeta
+                 float balanceCard = card.getBalance(); // es el saldo de la tarjeta del cliente
+                 Date fechaTransaction = new Date(); // obtiene la fecha de hoy
+                 SimpleDateFormat formatoFecha = new SimpleDateFormat("MM/yyyy"); // formato para convertir la fecha
+                 if(card.getState().equals("AC")  && compararFechas(formatoFecha.parse(card.getExpirationDate()), fechaTransaction) >0 && card.getBalance() >= valorCosto ){ //verifica si la tarjeta esta activada , si la fecha de vencimiento es mayor a la fecha acual , si la tarjeta tiene el saldo para realizar la compra
+                     transactionEntity.setTransactionDate(fechaTransaction); // guarda la fecha actual en la entitad de transaccion
+                     transactionEntity.setState("AP"); // aprueba la transaccion
+                     transactionEntity.setCard(card); // guarda el registro de la card ya que la relacion es uno a muchos
+                     transactionEntity.setPrice(valorCosto); // el costo de la transaccion
+                     float Total = balanceCard - valorCosto ; // el total de la tarjeta de credito
+                     card.setBalance(Total); // guarda el saldo restante de la tarjeta de credito
+                     cardRepository.saveAndFlush(card); // guarda la entitad modificada con el nuevo saldo del registro
+                     transactionRepository.insertTransaction(transactionEntity.getTransactionDate() , transactionEntity.getPrice()
+                             , transactionEntity.getState() ,transactionEntity.getCard().getIdCard()
+                     ); /// guarda por nativequery el nuevo registro en la tabla transaccion
+                     estadoTransaction = "SE REALIZÓ LA TRANSACCIÓN CON ÉXITO"; // mensaje de exito
                  }else{
-                         estadoTransaction = "TRANSACCIÓN RECHAZADA"; // no se realizo la trasacion
+                     estadoTransaction = "TRANSACCIÓN RECHAZADA"; // no se realizo la trasacion
                  }
+             }else{
+                 estadoTransaction = "TRANSACCIÓN RECHAZADA - POR FAVOR INGRESE LA INFORMACIÓN DE FORMA CORRECTA EL NÚMERO DE LA TARJETA DEBE TENER 16 DÍGITOS Y EL PRECIO EN TIPO DE DATO NUMÉRICO"; //
+             }
          }else{
-             estadoTransaction = "TRANSACCIÓN RECHAZADA - POR FAVOR INGRESE LA INFORMACIÓN DE FORMA CORRECTA EL NÚMERO DE LA TARJETA DEBE TENER 16 DÍGITOS Y EL PRECIO EN TIPO DE DATO NUMÉRICO"; //
+             estadoTransaction = "NO INGRESASTE UN JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON"; //
+
          }
+     } catch (JsonSyntaxException e) {
+         e.printStackTrace();
+         estadoTransaction = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO O NO INGRESO LOS 16 DÍGITOS DE LA TARJETA";
+         System.out.println("FORMATO JSON INVALIDO : "+e.getMessage());
      }catch (Exception e){
          e.printStackTrace();
-         System.out.println("NO SE PUDO REALIZAR LA TRANSACCIÓN : "+e.getMessage());
+         System.out.println("Hubo un error al actualizar la tarjeta de credito : "+e.getMessage());
      }
-
      return estadoTransaction;
-
     }
 
     /**
@@ -135,10 +139,13 @@ public class Transaction_Services {
     public Transaction_Entity consultarTransaction(String transactionId){
         Transaction_Entity transactionEntity = new Transaction_Entity();
         try {
-            if(transactionId.matches("\\d+")){
+            if( transactionId!=null  && transactionId.matches("\\d+") && Integer.parseInt(transactionId)>=0){
                 int idTransaction= Integer.parseInt(transactionId);
                 transactionEntity = transactionRepository.findTransactionById(idTransaction);
             }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            System.out.println("Se produjo una NullPointerException: " + e.getMessage());
         }catch (Exception e){
             e.printStackTrace();
             System.out.println("HUBO UN ERROR AL MOMENTO DE CONSULTAR LA TRANSACCIÓN : "+e.getMessage());
@@ -156,36 +163,47 @@ public class Transaction_Services {
         String estadoAnulacion = "";
         Card_Entity card_entity = new Card_Entity();
         Transaction_Entity transactionEntity = new Transaction_Entity();
-        Gson gson = new Gson();
-        JsonObject object = gson.fromJson(anulation, JsonObject.class);
+
         try {
-            if(object.get("transactionId").getAsString().matches("\\d+") && object.get("cardId").getAsString().matches("\\d+") && object.get("cardId").getAsString().length()==16){ //cumprueba si es tipo numerico
-                String idCard = object.get("cardId").getAsString();
-                int idTransaction = Integer.parseInt(object.get("transactionId").getAsString());
-                card_entity = cardRepository.buscardCardXId(idCard);
-                transactionEntity = transactionRepository.findTransactionById(idTransaction);
-                if(card_entity!=null && transactionEntity!=null){
-                    boolean fecha24H = tieneMasDe24Horas(transactionEntity.getTransactionDate());
-                    if(fecha24H==false && !transactionEntity.getState().equals("AN")){ // verifica si ya la transaccion ha sido anulada y si es mayor a 4 horas
-                        transactionEntity.setState("AN"); // cambia de esto
-                        float nuevoSaldo = card_entity.getBalance()+transactionEntity.getPrice(); // nuevo saldo de la tarjeta
-                        card_entity.setBalance(nuevoSaldo);
-                        cardRepository.saveAndFlush(card_entity);
-                        transactionRepository.saveAndFlush(transactionEntity);
-                        estadoAnulacion = "SE HA ANULADO LA TRANSACCIÓN";
+            if(isValidJson(anulation)==true){
+                Gson gson = new Gson();
+                JsonObject object = gson.fromJson(anulation, JsonObject.class);
+                if(object.get("transactionId").getAsString().matches("\\d+") && object.get("cardId").getAsString().matches("\\d+") && object.get("cardId").getAsString().length()==16){ //cumprueba si es tipo numerico
+                    String idCard = object.get("cardId").getAsString();
+                    int idTransaction = Integer.parseInt(object.get("transactionId").getAsString());
+                    card_entity = cardRepository.buscardCardXId(idCard);
+                    transactionEntity = transactionRepository.findTransactionById(idTransaction);
+                    if(card_entity!=null && transactionEntity!=null){
+                        boolean fecha24H = tieneMasDe24Horas(transactionEntity.getTransactionDate());
+                        String estadoTransaccion = transactionEntity.getState();
+                        if(fecha24H==false && !transactionEntity.getState().equals("AN")){ // verifica si ya la transaccion ha sido anulada y si es mayor a 4 horas
+                            transactionEntity.setState("AN"); // cambia de esto
+                            float nuevoSaldo = card_entity.getBalance()+transactionEntity.getPrice(); // nuevo saldo de la tarjeta
+                            card_entity.setBalance(nuevoSaldo);
+                            cardRepository.saveAndFlush(card_entity);
+                            transactionRepository.saveAndFlush(transactionEntity);
+                            estadoAnulacion = "SE HA ANULADO LA TRANSACCIÓN";
+                        }else{
+                            estadoAnulacion = "NO SE PUEDE ANULAR LA TRANSACCIÓN PORQUE SUPERO LAS 24 HORAS O NO ESTÁ ACTIVO O NO CUMPLE LA CONDICIÓN PARA ANULARSE";
+                        }if(estadoTransaccion.equals("AN")){
+                            estadoAnulacion = "LA TRANSACTION YA FUE ANULADA , NO PUEDE VOLVER ANULARSE";
+                        }
                     }else{
-                        estadoAnulacion = "NO SE PUEDE ANULAR LA TRANSACCIÓN - NO ESTÁ ACTIVO O NO CUMPLE LA CONDICIÓN PARA ANULARSE";
+                        estadoAnulacion = "NO SE PUEDE ANULAR LA TRANSACCIÓN - NO EXISTE LA TARJETA O LA TRANSACCIÓN";
                     }
                 }else{
-                    estadoAnulacion = "NO SE PUEDE ANULAR LA TRANSACCIÓN - NO EXISTE LA TARJETA O LA TRANSACCIÓN";
+                    estadoAnulacion = "HUBO UN ERROR AL MOMENTO DE ANULAR LA TRANSACCIÓN - INGRESE SOLO TIPO DE DATOS NUMÉRICOS" ;
                 }
             }else{
-                estadoAnulacion = "HUBO UN ERROR AL MOMENTO DE ANULAR LA TRANSACCIÓN - INGRESE SOLO TIPO DE DATOS NUMÉRICOS" ;
+                estadoAnulacion = "NO INGRESASTE UN JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON"; //
             }
-
+        } catch (JsonSyntaxException e) {
+            e.printStackTrace();
+            estadoAnulacion = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO O NO INGRESO LOS 16 DÍGITOS DE LA TARJETA";
+            System.out.println("FORMATO JSON INVALIDO : "+e.getMessage());
         }catch (Exception e){
             e.printStackTrace();
-            System.out.println("HUBO UN ERROR AL MOMENTO DE ANULAR LA TRANSACCIÓN - INGRESE SOLO TIPO DE DATOS NUMÉRICOS : "+e.getMessage());
+            System.out.println("Hubo un error al actualizar la tarjeta de credito : "+e.getMessage());
         }
 
         return estadoAnulacion;
@@ -218,6 +236,32 @@ public class Transaction_Services {
 
         return diferenciaEnSegundos > 86400;
     }
+
+
+    public static boolean esFloatValido(String str) {
+        String regex = "[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?";
+        String intRegex = "\\d+";
+        boolean respuestaInt = str.matches(regex);
+        if(str.matches(regex)==false){
+            respuestaInt = str.matches(intRegex);
+        }
+        return respuestaInt;
+    }
+
+
+    public boolean isValidJson(String jsonString) {
+        if (jsonString == null || jsonString.isEmpty()) {
+            return false; // Cadena nula o vacía no es un JSON válido
+        }
+        try {
+            new Gson().fromJson(jsonString, JsonObject.class);
+            return true;
+        } catch (JsonSyntaxException e) {
+            return false;
+        }
+    }
+
+
 
 
 }

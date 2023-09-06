@@ -43,7 +43,6 @@ public interface Transaction_Repository extends JpaRepository<Transaction_Entity
     @Query(value = "INSERT INTO TRANSACTION (transaction_date, price, state, card_id_card) " +
             "VALUES (:transactionDate, :price, :state, :cardIdCard)", nativeQuery = true)
     void insertTransaction(
-            //@Param("idTransaction") int idTransaction,
             @Param("transactionDate") Date transactionDate,
             @Param("price") float price,
             @Param("state") String state,
@@ -59,5 +58,23 @@ public interface Transaction_Repository extends JpaRepository<Transaction_Entity
      */
     @Query(value = "select * from transaction where id_transaction=:idTransaction", nativeQuery = true)
     Transaction_Entity findTransactionById(@Param("idTransaction") int idTransaction);
+
+
+
+
+
+    @Transactional
+    @Modifying
+    @Query(value = "INSERT INTO TRANSACTION (id_transaction, transaction_date, price, state, card_id_card) " +
+            "VALUES (:id_transaction, :transactionDate, :price, :state, :cardIdCard)", nativeQuery = true)
+    void insertTransactionTest(
+            @Param("id_transaction") int idTransaction,
+            @Param("transactionDate") Date transactionDate,
+            @Param("price") float price,
+            @Param("state") String state,
+            @Param("cardIdCard") String cardIdCard
+    );
+
+
 
 }

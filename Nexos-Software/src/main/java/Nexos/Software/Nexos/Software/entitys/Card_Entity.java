@@ -1,6 +1,7 @@
 package Nexos.Software.Nexos.Software.entitys;
 
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
