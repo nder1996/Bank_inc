@@ -81,7 +81,7 @@ public class CardService {
      * @return //  retorna los datos de la tarjeta creada
      *
      */
-    public Optional<?> CreateCard(String numProducto){
+    public Optional<?> createCard(String numProducto){
         String estadoActive = "";
         CardEntity card = new CardEntity();
         CardEntity cardNew =  new CardEntity();

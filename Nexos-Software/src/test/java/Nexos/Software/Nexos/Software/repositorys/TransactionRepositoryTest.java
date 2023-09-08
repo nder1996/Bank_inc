@@ -21,6 +21,12 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.*;
 
 
+/**
+ * a clase TransactionRepositoryTest es una clase de prueba unitaria que prueba el repositorio de transacciones de la aplicación.
+ * El repositorio de transacciones es una clase que proporciona acceso a las transacciones de la base de datos.
+ */
+
+
 @DataJpaTest
 @Transactional
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -38,7 +44,9 @@ class TransactionRepositoryTest {
     CardEntity cardEntity = new CardEntity();
 
 
-
+    /**
+     * este metodo busca un registro de una transaction en la base de datos , escenario favorable si existe el registro
+     */
     @Test
     public void testFindTransactionById() {
         try {
@@ -70,7 +78,9 @@ class TransactionRepositoryTest {
         }
     }
 
-
+    /**
+     * este metodo  busca un registro de una transaction en la base de datos , escenario desfavorable no existe el registro
+     */
     @Test
     void findTransactionByIdXIdNoExiste() {
         try {
@@ -109,6 +119,9 @@ class TransactionRepositoryTest {
 
 
 
+    /**
+     * este metodo inserta un registro de una transaction en la base de datos , escenario favorable
+     */
     @Test
     void insertTransaction(){
         try {
@@ -137,6 +150,12 @@ class TransactionRepositoryTest {
         }
     }
 
+
+
+
+    /**
+     * este metodo inserta un registro de una transaction en la base de datos , escenario desfavorable
+     */
     @Test
     void insertTransactionXErrorDatosEntrada(){
         try {
@@ -176,7 +195,11 @@ class TransactionRepositoryTest {
         }
     }
 
-
+    /**
+     * este metodo compureba si el id de la tarjeta cumple con las condicciones necesarios
+     * @param cardEntity recibe por parametro un entity
+     * @return retorna un true si todo el registro contiene el formato correcto de lo contrario devolverla un false
+     */
     public boolean validarTarjeta(CardEntity cardEntity) {
         if (cardEntity.getIdCard().length() != 16 && cardEntity.getIdCard().matches("\\d+")) {
             return false;
@@ -205,42 +228,25 @@ class TransactionRepositoryTest {
 
     public boolean crearTransaccion(TransactionEntity transactionEntity) {
         try {
-            // Validar que id_transaction sea mayor que 0 (asumiendo que debe ser un valor positivo)
             if (transactionEntity.getIdTransaction() <= 0) {
                 // Manejar el error: id_transaction no es válido
                 return false;
             }
-
-            // Validar que transactionDate no sea nulo y que sea una fecha válida
             if (transactionEntity.getTransactionDate() == null) {
-                // Manejar el error: transactionDate es nulo
                 return false;
             }
-
-            // Validar que price sea mayor que 0 (asumiendo que debe ser un valor positivo)
             if (transactionEntity.getPrice() <= 0) {
-                // Manejar el error: price no es válido
                 return false;
             }
-
-            // Validar que state tenga exactamente 2 caracteres
             if (transactionEntity.getState() == null || transactionEntity.getState().length() != 2) {
-                // Manejar el error: state no es válido
                 return false;
             }
-
-            // Validar que card sea una entidad válida (puedes agregar validaciones adicionales si es necesario)
             if (transactionEntity.getCard() == null || transactionEntity.getCard().getIdCard() == null) {
-                // Manejar el error: card no es válido
                 return false;
             }
-
-            // Si todas las validaciones pasan, puedes proceder a insertar la transacción en la base de datos
-            // transactionRepository.save(transactionEntity);
             return true;
         } catch (Exception e) {
-            // Manejar cualquier excepción no prevista aquí, por ejemplo, registrarla o lanzar una excepción personalizada.
-            return false; // Indicar que hubo un error no manejado
+            return false;
         }
     }
 

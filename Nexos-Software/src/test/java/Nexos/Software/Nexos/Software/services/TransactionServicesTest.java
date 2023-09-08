@@ -26,6 +26,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 
+/**
+ * El archivo TransactionServicesTest es un archivo de prueba unitaria que prueba los servicios
+ * de transacciones de la aplicación. Los servicios de transacciones son clases que proporcionan lógica de negocio para realizar transacciones de tarjetas.
+ */
+
+
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 class TransactionServicesTest {

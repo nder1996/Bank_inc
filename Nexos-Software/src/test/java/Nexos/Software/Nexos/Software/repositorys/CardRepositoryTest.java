@@ -16,6 +16,12 @@ import java.text.SimpleDateFormat;
 import static org.junit.jupiter.api.Assertions.*;
 
 
+/**
+ *El archivo repository-card-test prueba el repositorio de Card de la aplicación.
+ * El repositorio de Card es una clase que proporciona acceso a las Card de la base de datos.
+ */
+
+
 @DataJpaTest
 @Transactional
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -30,7 +36,9 @@ class CardRepositoryTest {
     CardEntity cardEntity = new CardEntity();
 
 
-
+    /**
+     * este metodo test llamado buscardCardXId_Escenario Favorable donde busca la tarjeta por ID
+     */
     @Test
     void buscardCardXId_EscenarioFavorable() {
         cardEntity = new CardEntity();
@@ -59,6 +67,11 @@ class CardRepositoryTest {
     }
 
 
+
+    /**
+     * este metodo test llamado buscardCardXId_Escenario Favorable hace una prueba en un escenario desfaborable
+     *el  id no exite en la base de datos
+     */
    @Test
    void buscardCardXIdNoExisteIdCard() {
        cardEntity = new CardEntity();
@@ -90,6 +103,9 @@ class CardRepositoryTest {
 
 
 
+    /**
+     * este metodo test llamado guardarCard hace una prueba en un escenario favorable que se guardo la tarjeta
+     */
     @Test
     void guardarCard(){
         cardEntity = new CardEntity();
@@ -110,7 +126,9 @@ class CardRepositoryTest {
     }
 
 
-
+    /**
+     * este metodo test llamado guardarCard hace una prueba en un escenario desfavorable donde los datos de la tarjeta son incorrectos por eso no se guarda
+     */
     @Test
     void guardarCardInvalidData(){
         CardEntity cardEntity = new CardEntity();
@@ -133,6 +151,11 @@ class CardRepositoryTest {
 
     }
 
+    /**
+     * este metodo tiene validaciones para comprobar si una tarjeta tiene el formato correspondiente o ni
+     * @param cardEntity el entity donde se encuentran los datos
+     * @return se devuelve true si cumple y si no un no
+     */
     public boolean validarTarjeta(CardEntity cardEntity) {
         if (cardEntity.getIdCard().length() != 16 && cardEntity.getIdCard().matches("\\d+")) {
             return false;

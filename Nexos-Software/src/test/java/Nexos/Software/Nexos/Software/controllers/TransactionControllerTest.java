@@ -17,11 +17,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class TransactionControllerTest {
 
+/**
+ *
+ El archivo TransactionControllerTest es un archivo de prueba unitaria que prueba el controlador de transacciones de la aplicación.
+ El controlador de transacciones es una clase que proporciona una API REST para realizar transacciones de tarjetas.
+ *
+ */
+
+
+class TransactionControllerTest {
 
 
     @Autowired
@@ -59,18 +69,17 @@ class TransactionControllerTest {
         MockitoAnnotations.initMocks(this);
     }
 
+
+    /**
+     * este prueba el metodo del controller crear transaction en un escencario favorable
+     */
     @Test
     public void testCreateTransactionFavorable() {
         try {
-
-            // Configura el comportamiento del mock transactionService
-            String validTransactionJson = "{\"key\":\"value\"}"; // Coloca aquí un JSON válido
-            when(transactionServices.createTransaction(validTransactionJson)).thenReturn("Transacción creada exitosamente");
-            // Llama al método createTransaction del controlador
-            ResponseEntity<String> response = transactionController.createTransaction(validTransactionJson);
-            // Verifica que se llamó al método transactionService.createTransaction con el JSON especificado
-            verify(transactionServices, times(1)).createTransaction(validTransactionJson);
-            // Verifica el contenido de la respuesta HTTP
+            String transaction = "{\"cardId\": \"1234567890123457\", \"price\": \"50.0\"}";
+            when(transactionServices.createTransaction(transaction)).thenReturn("Transacción creada exitosamente");
+            ResponseEntity<String> response = transactionController.createTransaction(transaction);
+            verify(transactionServices, times(1)).createTransaction(transaction);
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals("Transacción creada exitosamente", response.getBody());
         }catch (Exception e){
@@ -80,55 +89,40 @@ class TransactionControllerTest {
 
     }
 
-   /* @Test
+    /**
+     * este metodo testea en un evento favorable la consulta de una transaction
+     */
+    @Test
     public void testConsultarTransactionFavorable() {
         try {
-            // Define un valor de ejemplo para transactionId
             String transactionId = "123";
-
-            // Simula el comportamiento de transactionService.consultarTransaction
             TransactionEntity transactionEntity = new TransactionEntity();
             transactionEntity.setIdTransaction(1);
             transactionEntity.setState("COMPLETADA");
-            when(transactionServices.consultarTransaction(transactionId)).thenReturn(transactionEntity);
-
-            // Llama al método consultarTransaction del controlador
+            when(transactionServices.consultarTransaction(eq(transactionId))).thenAnswer(invocation -> {
+                return Optional.of(transactionEntity);
+            });
             ResponseEntity<?> response = transactionController.consultarTransaction(transactionId);
-
-            // Verifica que se llamó al método transactionService.consultarTransaction con el transactionId especificado
-            verify(transactionServices, times(1)).consultarTransaction(transactionId);
-
-            // Verifica el contenido de la respuesta HTTP
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(transactionEntity, response.getBody());
         }catch (Exception e){
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "HUBO UN ERROR AL MOMENTO DE HACER LA CONSULTAR EL REGISTRO EN LA BASE DE DATOS", e);
         }
-
-
     }
 
 
-    */
-
-   /* @Test
+    /**
+     * este prueba el metodo del controller anula transaction en un escencario favorable
+     */
+    @Test
     public void testAnularTransactionFavorable() {
     try {
-        // Define un valor de ejemplo para la solicitud de anulación
         String anulation = "{\"transactionId\":\"123\", \"reason\":\"Anulación de prueba\"}";
-
-        // Simula el comportamiento de transactionService.anulacionTransaction
         String estado = "ANULADA";
         when(transactionServices.anulacionTransaction(anulation)).thenReturn(estado);
-
-        // Llama al método anularTransaction del controlador
         ResponseEntity<String> response = transactionController.anularTransaction(anulation);
-
-        // Verifica que se llamó al método transactionService.anulacionTransaction con la solicitud de anulación especificada
         verify(transactionServices, times(1)).anulacionTransaction(anulation);
-
-        // Verifica el contenido de la respuesta HTTP
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(estado, response.getBody());
     }catch (Exception e){
@@ -136,6 +130,6 @@ class TransactionControllerTest {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Hubo un error al momento de hacer la anulacion", e);
     }
     }
-*/
+
 
 }

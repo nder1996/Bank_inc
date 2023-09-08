@@ -52,11 +52,11 @@ class CardServiceTest {
             cardEntity.setBalance(0.0F);
             Mockito.doReturn(cardEntity).when(cardRepository).saveAndFlush(any(CardEntity.class));
             Optional<?> respuesta = Optional.empty();
-            respuesta = cardService.CreateCard(numProducto);
+            respuesta = cardService.createCard(numProducto);
             if (respuesta.isPresent()) {
                 Object valor = respuesta.get();
                 CardEntity entidad = (CardEntity) valor;
-                assertEquals(cardEntity, entidad, "Las instancias de CardEntity deben ser iguales");
+                assertEquals(cardEntity, entidad);
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -71,7 +71,7 @@ class CardServiceTest {
     public void testCreateCardXInvalidInputLetra() {
         String numProducto = "1234a6";
         Optional<?> respuesta = Optional.empty();
-        respuesta = cardService.CreateCard(numProducto);
+        respuesta = cardService.createCard(numProducto);
         try {
             if (respuesta.isPresent()) {
                 Object valor = respuesta.get();
@@ -91,7 +91,7 @@ class CardServiceTest {
     public void testCreateCardXNoIdProvided() {
         String numProducto = "";
         Optional<?> respuesta = Optional.empty();
-        respuesta = cardService.CreateCard(numProducto);
+        respuesta = cardService.createCard(numProducto);
         try {
             if (respuesta.isPresent()) {
                 Object valor = respuesta.get();
@@ -112,7 +112,7 @@ class CardServiceTest {
     public void testCreateCardXIdNotSixDigits() {
         String numProducto = "12345";
         Optional<?> respuesta = Optional.empty();
-        respuesta = cardService.CreateCard(numProducto);
+        respuesta = cardService.createCard(numProducto);
         try {
             if (respuesta.isPresent()) {
                 Object valor = respuesta.get();
@@ -133,7 +133,7 @@ class CardServiceTest {
     public void testCreateCardXNullId() {
         String numProducto = null;
         Optional<?> respuesta = Optional.empty();
-        respuesta = cardService.CreateCard(numProducto);
+        respuesta = cardService.createCard(numProducto);
         try {
             if (respuesta.isPresent()) {
                 Object valor = respuesta.get();

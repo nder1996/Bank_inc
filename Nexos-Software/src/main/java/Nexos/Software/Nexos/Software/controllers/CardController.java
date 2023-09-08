@@ -52,7 +52,7 @@ public class CardController {
     public ResponseEntity<?> createCard(@PathVariable String productId){
         try {
             Optional<?> respuesta = Optional.empty();
-            respuesta  = cardService.CreateCard(productId);
+            respuesta  = cardService.createCard(productId);
             if (respuesta.isPresent()) {
                 Object valor = respuesta.get();
                 if (valor instanceof String) {
