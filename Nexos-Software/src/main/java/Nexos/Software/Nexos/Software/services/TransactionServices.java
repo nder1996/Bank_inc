@@ -190,9 +190,8 @@ public class TransactionServices {
                         card_entity = cardRepository.buscardCardXId(idCard);
                         transactionEntity = transactionRepository.findTransactionById(numeroEntero);
                         if(card_entity!=null && transactionEntity!=null){
-                            boolean fecha24H = esMayorQue24Horas(new Date(), transactionEntity.getTransactionDate());
                             String estadoTransaccion = transactionEntity.getState();
-                            if(fecha24H==false && !transactionEntity.getState().equals("AN")){
+                            if(transactionEntity.getTransactionDate().before(new Date()) && !transactionEntity.getState().equals("AN")){
                                 transactionEntity.setState("AN"); // cambia de esto
                                 float cardSaldo = card_entity.getBalance();
                                 float transactionSaldo = transactionEntity.getPrice();
@@ -243,27 +242,13 @@ public class TransactionServices {
     }
 
 
-    /**
-     *Este metodo verifica si la fecha de la transaccion supera los 24 horas despues de realizarse
-     * @param fecha es la fecha del registro de la transaccion
-     * @return devuelve al respuesta si el registro es superior a las 24 horas
-     */
-    public static boolean tieneMasDe24Horas(Date fecha) {
-
-        Date fechaActual = new Date();
-
-        long diferenciaEnMilisegundos = fechaActual.getTime() - fecha.getTime();
-
-        long diferenciaEnSegundos = diferenciaEnMilisegundos / 1000;
-
-        return diferenciaEnSegundos > 86400;
-    }
 
 
-    public static boolean esMayorQue24Horas(Date fecha1, Date fecha2) {
-        long diferenciaEnMillis = fecha2.getTime() - fecha1.getTime();
-        long millisEn24Horas = 24 * 60 * 60 * 1000;
-        return diferenciaEnMillis > millisEn24Horas;
+
+    public static boolean esMenorQue24Horas(Date fechaTransaccion, Date fechaActual) {
+        long diferenciaEnMillis = fechaActual.getTime() - fechaTransaccion.getTime();
+        long millisEn24Horas = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
+        return diferenciaEnMillis < millisEn24Horas;
     }
 
 

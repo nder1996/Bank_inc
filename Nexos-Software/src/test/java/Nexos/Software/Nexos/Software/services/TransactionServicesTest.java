@@ -17,6 +17,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 
@@ -304,7 +305,7 @@ class TransactionServicesTest {
             cardEntity.setBalance(10000.0F);
             when(cardRepository.buscardCardXId(eq("1234567890123455"))).thenReturn(cardEntity);
             TransactionEntity transactionEntity = new TransactionEntity();
-            transactionEntity.setTransactionDate(new Date());
+            transactionEntity.setTransactionDate(obtenerFechaAyerMenosSegundo());
             transactionEntity.setPrice(10000.0F);
             transactionEntity.setState("AP");
             transactionEntity.setCard(cardEntity);
@@ -317,7 +318,14 @@ class TransactionServicesTest {
         }
     }
 
-
+    public static Date obtenerFechaAyerMenosSegundo() {
+        Date fechaActual = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(fechaActual);
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        calendar.add(Calendar.SECOND, -1);
+        return calendar.getTime();
+    }
 
     /**
      * este metodo de createTransaction lo que hace es probar un escenario desfavorable
@@ -421,33 +429,33 @@ class TransactionServicesTest {
             cardEntity.setBalance(10000.0F);
             when(cardRepository.buscardCardXId(eq("1234567890123455"))).thenReturn(cardEntity);
             TransactionEntity transactionEntity = new TransactionEntity();
-            Date facha24H = mas24Mas();
-            transactionEntity.setTransactionDate(facha24H);
+            transactionEntity.setTransactionDate(obtenerFechaMasUnSegundo());
             transactionEntity.setPrice(10000.0F);
             transactionEntity.setState("AP");
             transactionEntity.setCard(cardEntity);
             when(transactionRepository.findTransactionById(eq(1))).thenReturn(transactionEntity);
             String json = "{\"cardId\": \"1234567890123455\", \"transactionId\": \"1\"}";
             String result = transactionServices.anulacionTransaction(json);
-            assertEquals("NO SE PUEDE ANULAR LA TRANSACCIÓN PORQUE SUPERO LAS 24 HORAS O NO ESTÁ ACTIVO O NO CUMPLE LA CONDICIÓN PARA ANULARSE o YA SE ANULO", result);
+            assertEquals(result,"NO SE PUEDE ANULAR LA TRANSACCIÓN PORQUE SUPERO LAS 24 HORAS O NO ESTÁ ACTIVO O NO CUMPLE LA CONDICIÓN PARA ANULARSE o YA SE ANULO");
         }catch (Exception e){
             System.err.println("Hubo un error al momento de ejecutar la aplicacion: " + e.getClass().getName());
         }
     }
 
+    public Date obtenerFechaMasUnSegundo() {
 
-    public static Date mas24Mas(){
-        Date fechaResultado = null;
-        try {
-            Date fechaActual = new Date();
-            long horasEnMilisegundos = 24 * 60 * 60 * 1000;
-            Date fecha24HorasAntes = new Date(fechaActual.getTime() - horasEnMilisegundos);
-            fechaResultado = fecha24HorasAntes;
-        }catch (Exception e){
-            System.err.println("Hubo un error al momento de ejecutar la aplicacion: " + e.getClass().getName());
-        }
-        return fechaResultado;
+
+        Date fechaActual = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(fechaActual);
+
+        calendar.add(Calendar.SECOND, 1);
+        Date fechaNueva = calendar.getTime();
+        return fechaNueva;
     }
+
+
+
 
 
     @AfterEach
