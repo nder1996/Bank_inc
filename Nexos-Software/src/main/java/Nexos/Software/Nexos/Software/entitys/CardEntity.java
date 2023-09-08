@@ -1,13 +1,10 @@
 package Nexos.Software.Nexos.Software.entitys;
 
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.Date;
-
 
 
 /**
@@ -15,7 +12,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "card")
-public class Card_Entity {
+public class CardEntity {
 
 
     /**
@@ -63,7 +60,7 @@ public class Card_Entity {
     /**
      * Constructor vacío de la entidad Card_Entity.
      */
-    public Card_Entity() {}
+    public CardEntity() {}
 
     /**
      * Constructor de la entidad Card_Entity con parámetros.
@@ -74,7 +71,7 @@ public class Card_Entity {
      * @param ownerName     Nombre del propietario de la tarjeta.
      * @param state         Estado de la tarjeta.
      */
-    public Card_Entity(String idCard ,String expirationDate , float balance ,String ownerName , String state ){
+    public CardEntity(String idCard , String expirationDate , float balance , String ownerName , String state ){
         this.idCard = idCard;
         this.expirationDate = expirationDate;
         this.balance = balance;

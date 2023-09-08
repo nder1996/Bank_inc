@@ -1,12 +1,11 @@
 package Nexos.Software.Nexos.Software.repositorys;
 
-import Nexos.Software.Nexos.Software.entitys.Card_Entity;
+import Nexos.Software.Nexos.Software.entitys.CardEntity;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 import javax.transaction.Transactional;
@@ -23,19 +22,18 @@ import static org.junit.jupiter.api.Assertions.*;
 class CardRepositoryTest {
 
     @Autowired
-    Card_Repository cardRepository;
-
-    @Autowired
-    private TestEntityManager testEntityManager;
+    CardRepository cardRepository;
 
 
-    Card_Entity cardEntity = new Card_Entity();
+
+
+    CardEntity cardEntity = new CardEntity();
 
 
 
     @Test
     void buscardCardXId_EscenarioFavorable() {
-        cardEntity = new Card_Entity();
+        cardEntity = new CardEntity();
         cardEntity.setIdCard("1234567890123456");
         cardEntity.setExpirationDate("01/2023");
         cardEntity.setBalance(0.0F);
@@ -43,7 +41,7 @@ class CardRepositoryTest {
         cardEntity.setState("IN");
         cardRepository.saveAndFlush(cardEntity);
         try {
-        Card_Entity resultante = cardRepository.buscardCardXId("1234567890123456");
+        CardEntity resultante = cardRepository.buscardCardXId("1234567890123456");
         assertNotNull(resultante);
         assertTrue(resultante!=null,"Se encontro el registro");
             assertEquals(resultante.getIdCard(), "1234567890123456", "Los ID de tarjeta coinciden");
@@ -63,7 +61,7 @@ class CardRepositoryTest {
 
    @Test
    void buscardCardXIdNoExisteIdCard() {
-       cardEntity = new Card_Entity();
+       cardEntity = new CardEntity();
        cardEntity.setIdCard("1234567890123456");
        cardEntity.setExpirationDate("01/2023");
        cardEntity.setBalance(0.0F);
@@ -71,7 +69,7 @@ class CardRepositoryTest {
        cardEntity.setState("IN");
        try {
            cardRepository.saveAndFlush(cardEntity);
-           Card_Entity resultante = cardRepository.buscardCardXId("123456P7890123450");
+           CardEntity resultante = cardRepository.buscardCardXId("123456P7890123450");
            assertNotNull(resultante, "La base de datos encontró el registro");
            assertEquals("1234567890123456", resultante.getIdCard(), "ID de tarjeta no coincide");
            assertEquals("01/2023", resultante.getExpirationDate(), "Fecha de vencimiento no coincide");
@@ -93,15 +91,15 @@ class CardRepositoryTest {
 
 
     @Test
-    void guardarCard_EscenearioFavorable(){
-        cardEntity = new Card_Entity();
+    void guardarCard(){
+        cardEntity = new CardEntity();
         cardEntity.setIdCard("1234567890123455");
         cardEntity.setExpirationDate("01/2022");
         cardEntity.setBalance(0.0F);
         cardEntity.setOwnerName("JUANITO");
         cardEntity.setState("IN");
         cardRepository.saveAndFlush(cardEntity);
-        Card_Entity resultante = cardRepository.buscardCardXId(cardEntity.getIdCard());
+        CardEntity resultante = cardRepository.buscardCardXId(cardEntity.getIdCard());
         assertTrue(resultante != null &&
                         cardEntity.getIdCard().equals(resultante.getIdCard()) &&
                         cardEntity.getExpirationDate().equals(resultante.getExpirationDate()) &&
@@ -114,8 +112,8 @@ class CardRepositoryTest {
 
 
     @Test
-    void guardarCard_EscenarioDesfavorable() {
-        Card_Entity cardEntity = new Card_Entity();
+    void guardarCardInvalidData(){
+        CardEntity cardEntity = new CardEntity();
         cardEntity.setIdCard("02345678we90123455");
         cardEntity.setExpirationDate("0we120228");
         cardEntity.setBalance(0.0F);
@@ -135,7 +133,7 @@ class CardRepositoryTest {
 
     }
 
-    public boolean validarTarjeta(Card_Entity cardEntity) {
+    public boolean validarTarjeta(CardEntity cardEntity) {
         if (cardEntity.getIdCard().length() != 16 && cardEntity.getIdCard().matches("\\d+")) {
             return false;
         }

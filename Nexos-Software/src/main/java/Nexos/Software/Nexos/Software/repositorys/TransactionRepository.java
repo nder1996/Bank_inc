@@ -1,6 +1,6 @@
 package Nexos.Software.Nexos.Software.repositorys;
 
-import Nexos.Software.Nexos.Software.entitys.Transaction_Entity;
+import Nexos.Software.Nexos.Software.entitys.TransactionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -27,7 +27,7 @@ import java.util.Date;
  * y escritura en la base de datos relacionada con la entidad Transaction_Entity
  */
 @Repository
-public interface Transaction_Repository extends JpaRepository<Transaction_Entity,String>{
+public interface TransactionRepository extends JpaRepository<TransactionEntity,Integer>{
 
 
     /**
@@ -40,7 +40,7 @@ public interface Transaction_Repository extends JpaRepository<Transaction_Entity
      */
     @Transactional
     @Modifying
-    @Query(value = "INSERT INTO TRANSACTION (transaction_date, price, state, card_id_card) " +
+    @Query(value = "INSERT INTO transaction (transaction_date, price, state, card_id) " +
             "VALUES (:transactionDate, :price, :state, :cardIdCard)", nativeQuery = true)
     void insertTransaction(
             @Param("transactionDate") Date transactionDate,
@@ -57,7 +57,7 @@ public interface Transaction_Repository extends JpaRepository<Transaction_Entity
      * @return me devuelve el registro que dio como respuesta la base de datos que coincide con la condición
      */
     @Query(value = "select * from transaction where id_transaction=:idTransaction", nativeQuery = true)
-    Transaction_Entity findTransactionById(@Param("idTransaction") int idTransaction);
+    TransactionEntity findTransactionById(@Param("idTransaction") Integer idTransaction);
 
 
 
@@ -65,7 +65,7 @@ public interface Transaction_Repository extends JpaRepository<Transaction_Entity
 
     @Transactional
     @Modifying
-    @Query(value = "INSERT INTO TRANSACTION (id_transaction, transaction_date, price, state, card_id_card) " +
+    @Query(value = "INSERT INTO transaction (id_transaction, transaction_date, price, state, card_id_card) " +
             "VALUES (:id_transaction, :transactionDate, :price, :state, :cardIdCard)", nativeQuery = true)
     void insertTransactionTest(
             @Param("id_transaction") int idTransaction,

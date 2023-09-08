@@ -1,6 +1,6 @@
 package Nexos.Software.Nexos.Software.repositorys;
-import Nexos.Software.Nexos.Software.entitys.Card_Entity;
-import Nexos.Software.Nexos.Software.entitys.Transaction_Entity;
+import Nexos.Software.Nexos.Software.entitys.CardEntity;
+import Nexos.Software.Nexos.Software.entitys.TransactionEntity;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.AfterEach;
 
@@ -28,15 +28,14 @@ class TransactionRepositoryTest {
 
 
     @Autowired
-    Transaction_Repository transactionRepository;
+    TransactionRepository transactionRepository;
 
     @Autowired
-     Card_Repository cardRepository;
+    CardRepository cardRepository;
 
-    Transaction_Entity transactionEntity = new Transaction_Entity();
+    TransactionEntity transactionEntity = new TransactionEntity();
 
-    Card_Entity cardEntity = new Card_Entity();
-
+    CardEntity cardEntity = new CardEntity();
 
 
 
@@ -52,7 +51,7 @@ class TransactionRepositoryTest {
             cardEntity.setState("AC");
             cardRepository.saveAndFlush(cardEntity);
 
-            Transaction_Entity transactionToSave = new Transaction_Entity();
+            TransactionEntity transactionToSave = new TransactionEntity();
             transactionToSave.setIdTransaction(1);
             transactionEntity.setState("AP");
             transactionEntity.setTransactionDate(fechActual);
@@ -63,7 +62,7 @@ class TransactionRepositoryTest {
                     transactionEntity.getPrice(),
                     transactionEntity.getState(),
                     transactionEntity.getCard().getIdCard());
-            Transaction_Entity resultante = transactionRepository.findTransactionById(1);
+            TransactionEntity resultante = transactionRepository.findTransactionById(1);
             assertNotNull(resultante, "Se encontró la transacción");
             assertEquals(1, resultante.getIdTransaction(), "Los ID de transacción coinciden");
         } catch (Exception e) {
@@ -75,7 +74,7 @@ class TransactionRepositoryTest {
     @Test
     void findTransactionByIdXIdNoExiste() {
         try {
-            cardEntity = new Card_Entity();
+            cardEntity = new CardEntity();
             Date fechActual = new Date();
             cardEntity.setIdCard("1234567890123456");
             cardEntity.setExpirationDate("01/2022");
@@ -93,7 +92,7 @@ class TransactionRepositoryTest {
                     transactionEntity.getPrice(),
                     transactionEntity.getState(),
                     transactionEntity.getCard().getIdCard());
-            Transaction_Entity resultante = transactionRepository.findTransactionById(157);
+            TransactionEntity resultante = transactionRepository.findTransactionById(157);
             assertNotNull(resultante, "La base de datos no encontró el registro");
         }catch (DataIntegrityViolationException e) {
             System.err.println("Error de violación de integridad: " + e.getMessage());
@@ -113,7 +112,7 @@ class TransactionRepositoryTest {
     @Test
     void insertTransaction(){
         try {
-            cardEntity = new Card_Entity();
+            cardEntity = new CardEntity();
             Date fechActual = new Date();
             cardEntity.setIdCard("1234567890123456");
             cardEntity.setExpirationDate("01/2022");
@@ -141,8 +140,8 @@ class TransactionRepositoryTest {
     @Test
     void insertTransactionXErrorDatosEntrada(){
         try {
-            cardEntity = new Card_Entity();
-            transactionEntity = new Transaction_Entity();
+            cardEntity = new CardEntity();
+            transactionEntity = new TransactionEntity();
             Date fechActual = new Date();
             cardEntity.setIdCard("123456789012D213456");
             cardEntity.setExpirationDate("01/20222");
@@ -178,7 +177,7 @@ class TransactionRepositoryTest {
     }
 
 
-    public boolean validarTarjeta(Card_Entity cardEntity) {
+    public boolean validarTarjeta(CardEntity cardEntity) {
         if (cardEntity.getIdCard().length() != 16 && cardEntity.getIdCard().matches("\\d+")) {
             return false;
         }
@@ -204,7 +203,7 @@ class TransactionRepositoryTest {
     }
 
 
-    public boolean crearTransaccion(Transaction_Entity transactionEntity) {
+    public boolean crearTransaccion(TransactionEntity transactionEntity) {
         try {
             // Validar que id_transaction sea mayor que 0 (asumiendo que debe ser un valor positivo)
             if (transactionEntity.getIdTransaction() <= 0) {

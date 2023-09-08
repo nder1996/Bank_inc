@@ -1,14 +1,10 @@
 package Nexos.Software.Nexos.Software.repositorys;
 
-import Nexos.Software.Nexos.Software.entitys.Card_Entity;
+import Nexos.Software.Nexos.Software.entitys.CardEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Date;
 
 
 /**
@@ -25,7 +21,7 @@ import java.util.Date;
  * y escritura en la base de datos relacionada con la entidad Card_Entity
  */
 @Repository
-public interface Card_Repository extends  JpaRepository<Card_Entity,String>{
+public interface CardRepository extends  JpaRepository<CardEntity,String>{
 
 
     /**
@@ -35,7 +31,7 @@ public interface Card_Repository extends  JpaRepository<Card_Entity,String>{
      * @return retorna el entity que guarda la respuesta de la base de datos
      */
     @Query(value = "select * from card where id_card=:idCard", nativeQuery = true)
-    Card_Entity buscardCardXId(@Param("idCard") String idCard);
+    CardEntity buscardCardXId(@Param("idCard") String idCard);
 
 
 }

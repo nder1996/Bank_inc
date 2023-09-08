@@ -1,7 +1,8 @@
 package Nexos.Software.Nexos.Software.controllers;
 
 
-import Nexos.Software.Nexos.Software.entitys.Transaction_Entity;
+import Nexos.Software.Nexos.Software.entitys.CardEntity;
+import Nexos.Software.Nexos.Software.entitys.TransactionEntity;
 
 import Nexos.Software.Nexos.Software.services.TransactionServices;
 
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Optional;
 
 
 /**
@@ -32,7 +34,7 @@ public class TransactionController {
      * Crea una nueva instancia (objeto) de la clase Transaction_Entity
      * y asigna esta instancia a la variable transactionEntity
      */
-    Transaction_Entity transactionEntity = new Transaction_Entity();
+    TransactionEntity transactionEntity = new TransactionEntity();
 
 
 
@@ -59,7 +61,7 @@ public class TransactionController {
     @PostMapping("/purchase")
     public ResponseEntity<String> createTransaction(@RequestBody String transaction){
         String estado = "";
-        transactionEntity = new Transaction_Entity();
+        transactionEntity = new TransactionEntity();
         try {
             estado = transactionServices.createTransaction(transaction);
             return ResponseEntity.ok(estado);
@@ -78,19 +80,27 @@ public class TransactionController {
     @GetMapping("/{transactionId}")
     public ResponseEntity<?> consultarTransaction(@PathVariable String transactionId){
         try {
-
-            transactionEntity = new Transaction_Entity();
-            transactionEntity = transactionServices.consultarTransaction(transactionId);
-            if(transactionEntity.getState()!=null){
-                return ResponseEntity.ok(transactionEntity);
-            }else{
-                String errorMessage = "NO SE ENCONTRÓ LA TRANSACCIÓN CON EL ID: " + transactionId + " -  SOLO SE PUEDE BUSCAR ID NUMÉRICO";
-                return ResponseEntity.ok(errorMessage);
+            Optional<?> respuesta = Optional.empty();
+            respuesta = transactionServices.consultarTransaction(transactionId);
+            TransactionEntity transaction = new TransactionEntity();
+            if (respuesta.isPresent()) {
+                Object valor = respuesta.get();
+                if (valor instanceof String) {
+                    String cadena = (String) valor;
+                    return ResponseEntity.ok(cadena);
+                } else if (valor instanceof TransactionEntity) {
+                    TransactionEntity entity = (TransactionEntity) valor;
+                    return ResponseEntity.ok(entity);
+                }
+            } else {
+                return ResponseEntity.ok("NO SE PUEDO REALIZAR LA SOLICITUD");
             }
+
         }catch (Exception e){
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "HUBO UN ERROR AL MOMENTO DE HACER LA CONSULTAR EL REGISTRO EN LA BASE DE DATOS", e);
         }
+        return null;
     }
 
     /**

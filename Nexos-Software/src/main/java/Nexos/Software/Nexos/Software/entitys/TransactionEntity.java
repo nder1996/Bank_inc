@@ -4,14 +4,13 @@ package Nexos.Software.Nexos.Software.entitys;
 import javax.persistence.*;
 import java.util.Date;
 
-import Nexos.Software.Nexos.Software.entitys.Card_Entity;
 import lombok.Getter;
 import lombok.Setter;
 
 
 @Entity
 @Table(name = "transaction")
-public class Transaction_Entity {
+public class TransactionEntity {
 
     /**
      * Identificador único de la transacción.
@@ -52,16 +51,16 @@ public class Transaction_Entity {
      * Tarjeta asociada a la transacción.
      */
     @ManyToOne
-    @JoinColumn(name = "card_id_card", referencedColumnName = "id_card", nullable = false)
+    @JoinColumn(name = "card_id", referencedColumnName = "id_card", nullable = false)
     @Getter
     @Setter
-    private Card_Entity card;
+    private CardEntity card;
 
 
     /**
      * Constructor vacío de la entidad Transaction_Entity.
      */
-    public Transaction_Entity(){}
+    public TransactionEntity(){}
 
 
     /**
@@ -73,7 +72,7 @@ public class Transaction_Entity {
      * @param card            Tarjeta asociada a la transacción.
      * @param price           Precio de la transacción.
      */
-    public Transaction_Entity(int idTransaction , Date transactionDate , String state , Card_Entity card , float price){
+    public TransactionEntity(int idTransaction , Date transactionDate , String state , CardEntity card , float price){
       this.idTransaction = idTransaction;
       this.transactionDate = transactionDate;
       this.state = state ;

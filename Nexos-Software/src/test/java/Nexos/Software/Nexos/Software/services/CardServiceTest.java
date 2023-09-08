@@ -1,18 +1,22 @@
 package Nexos.Software.Nexos.Software.services;
 
-import Nexos.Software.Nexos.Software.entitys.Card_Entity;
-import Nexos.Software.Nexos.Software.repositorys.Card_Repository;
+import Nexos.Software.Nexos.Software.entitys.CardEntity;
+import Nexos.Software.Nexos.Software.repositorys.CardRepository;
 import com.google.gson.JsonSyntaxException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.platform.commons.function.Try;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 
+import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -32,438 +36,540 @@ class CardServiceTest {
     private CardService cardService; // Se inyecta automáticamente el servicio real
 
     @MockBean
-    private Card_Repository cardRepository; // Se utiliza una simulación del repositorio
+    private CardRepository cardRepository; // Se utiliza una simulación del repositorio
 
 
-
+    /**
+     * este metodo de test createCard  sirve para hacer una prueba que el metodo del services funciona correctamente
+     */
     @Test
-    public void CreateCard() {
+    public void testCreateCardXValid() {
         try {
-            Card_Entity cardEntity = new Card_Entity();
-            cardEntity.setIdCard("123456");
+            String numProducto = "123456";
+            CardEntity cardEntity = new CardEntity();
+            cardEntity.setIdCard("7894561230123456");
             cardEntity.setState("IN");
             cardEntity.setBalance(0.0F);
-            Mockito.doReturn(cardEntity).when(cardRepository).saveAndFlush(any(Card_Entity.class));
-            String numProducto = "123456";
-            Card_Entity result = cardService.createCard(numProducto);
-            assertNotNull(result);
-            assertEquals("IN", result.getState());
-            assertEquals(0.0F, result.getBalance());
-            Mockito.verify(cardRepository, times(1)).saveAndFlush(any(Card_Entity.class));
-            Mockito.verifyNoMoreInteractions(cardRepository);
-        }catch (Exception e){
-            System.err.println("Hubo un error al momento de ejecutar la aplicacion: " + e.getClass().getName());
-        }
-    }
-
-
-    @Test
-    public void createCardXIdInvalido() {
-        try {
-            String numProducto = "12345";
-            Card_Entity result = cardService.createCard(numProducto);
-            if (result == null) {
-                System.err.println("Ingrese número correcto - Solo 6 dígitos");
-            } else {
-                // Si el resultado no es nulo, verifica las interacciones del repositorio aquí si es necesario.
-                Mockito.verifyNoMoreInteractions(cardRepository);
+            Mockito.doReturn(cardEntity).when(cardRepository).saveAndFlush(any(CardEntity.class));
+            Optional<?> respuesta = Optional.empty();
+            respuesta = cardService.CreateCard(numProducto);
+            if (respuesta.isPresent()) {
+                Object valor = respuesta.get();
+                CardEntity entidad = (CardEntity) valor;
+                assertEquals(cardEntity, entidad, "Las instancias de CardEntity deben ser iguales");
             }
-        } catch (Exception e) {
-            System.err.println("Hubo un error al momento de ejecutar la aplicación: " + e.getClass().getName());
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("HUBO UN ERROR AL CREAR LA TARJETA DE CREDITO : "+e.getMessage());
+        }
+    }
+
+    /**
+     *este metodo de test createCard   sirve para simular el escenario que el usuario ingrese un input que contiene una letra
+     */
+    @Test
+    public void testCreateCardXInvalidInputLetra() {
+        String numProducto = "1234a6";
+        Optional<?> respuesta = Optional.empty();
+        respuesta = cardService.CreateCard(numProducto);
+        try {
+            if (respuesta.isPresent()) {
+                Object valor = respuesta.get();
+                String cadena = (String) valor;
+                assertEquals(cadena, "NO INGRESASTE DATO VáLIDO , SOLO NÚMEROS");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("HUBO UN ERROR AL CREAR LA TARJETA DE CREDITO : "+e.getMessage());
+        }
+    }
+
+    /**
+     * este metodo de test createCard sirve para simular el escenario que el usuario ingrese un input que contiene uun espacio en blanco
+     */
+    @Test
+    public void testCreateCardXNoIdProvided() {
+        String numProducto = "";
+        Optional<?> respuesta = Optional.empty();
+        respuesta = cardService.CreateCard(numProducto);
+        try {
+            if (respuesta.isPresent()) {
+                Object valor = respuesta.get();
+                String cadena = (String) valor;
+                assertEquals(cadena, "NO INGRESASTE NINGÚN DATO");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("HUBO UN ERROR AL CREAR LA TARJETA : "+e.getMessage());
         }
     }
 
 
+    /**
+     * este metodo de test createCard sirve para simular el escenario que el usuario ingrese un input que solo 5 digitos
+     */
     @Test
-    public void testActiveCard() {
+    public void testCreateCardXIdNotSixDigits() {
+        String numProducto = "12345";
+        Optional<?> respuesta = Optional.empty();
+        respuesta = cardService.CreateCard(numProducto);
+        try {
+            if (respuesta.isPresent()) {
+                Object valor = respuesta.get();
+                String cadena = (String) valor;
+                assertEquals(cadena, "LA CADENA NO TIENE 6 CARACTERES");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("A CADENA NO TIENE 6 CARACTERES : "+e.getMessage());
+        }
+    }
+
+
+    /**
+     * este metodo de test createCard sirve para simular el escenario que el usuario ingrese un input null
+     */
+    @Test
+    public void testCreateCardXNullId() {
+        String numProducto = null;
+        Optional<?> respuesta = Optional.empty();
+        respuesta = cardService.CreateCard(numProducto);
+        try {
+            if (respuesta.isPresent()) {
+                Object valor = respuesta.get();
+                String cadena = (String) valor;
+                assertEquals(cadena, "LA CADENA ES NULA");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA CADENA ES NULA : "+e.getMessage());
+        }
+    }
+
+
+    /**
+     * este metodo de activar tarjeta verifica que en un escenario favorable se puede activar la tarjeta
+     */
+    @Test
+    public void testActiveCardXValid() {
         try {
             cardService = new CardService();
-            Card_Repository cardRepository = mock(Card_Repository.class);
+            CardRepository cardRepository = mock(CardRepository.class);
             CardService cardService = new CardService(cardRepository);
-            Card_Entity existingCard = new Card_Entity();
+            CardEntity existingCard = new CardEntity();
             existingCard.setIdCard("1234567890123456");
-            existingCard.setState("IN"); // Tarjeta inactiva
+            existingCard.setState("IN");
+            existingCard.setBalance(0.0F);
+            existingCard.setExpirationDate("01/2026");
             when(cardRepository.buscardCardXId(anyString())).thenReturn(existingCard);
-            // Caso 1: Activar una tarjeta válida e inactiva
-            String validCardJson = "{\"idCard\":\"1234567890123456\"}";
-            String result1 = cardService.activeCard(validCardJson);
-            assertEquals("TARJETA ACTIVADA", result1);
-            // Caso 2: Intentar activar una tarjeta que ya está activa
-            existingCard.setState("AC"); // Tarjeta activa
-            when(cardRepository.buscardCardXId(anyString())).thenReturn(existingCard);
-            String result2 = cardService.activeCard(validCardJson);
-            assertEquals("LA TARJETA YA SE ENCUENTRA ACTIVADA", result2);
-            // Caso 3: Intentar activar una tarjeta que no existe
-            when(cardRepository.buscardCardXId(anyString())).thenReturn(null);
-            String result3 = cardService.activeCard(validCardJson);
-            assertEquals("NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS", result3);
-            // Caso 4: Intentar activar una tarjeta con un formato de JSON inválido
-            String invalidCardJson = "invalid_json_format";
-            String result4 = cardService.activeCard(invalidCardJson);
-            assertEquals("NO INGRESASTE UN JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON", result4);
-        } catch (JsonSyntaxException e) {
+            String json = "{\"idCard\": \"1234567890123456\"}";
+            String result = cardService.activeCard(json);
+            assertEquals(result, "TARJETA ACTIVADA");
+        }catch (Exception e){
             e.printStackTrace();
-            System.out.println("FORMATO JSON INVALIDO : "+e.getMessage());
-        }catch(Exception e){
-            System.err.println("Hubo un error al momento de ejecutar la aplicacion: " + e.getClass().getName());
+            System.out.println("LA TARJETA NO SE PUDO ACTIVAR : "+e.getMessage());
         }
     }
 
+
+    /**
+     *   * este metodo de activar tarjeta verifica que en un escenario donde no existe json
+     */
     @Test
-    public void testActiveCardXCasosDesfavoravle() {
+    public void testActiveCard_NoJson() {
         try {
-            // Configuración inicial
+            String result = cardService.activeCard(null);
+            assertEquals("NO INGRESASTE UN JSON O NO COLOCASTE BIEN EL KEY DEL JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO ACTIVAR : "+e.getMessage());
+        }
+    }
+
+
+    /**
+     *   * este metodo de activar tarjeta verifica que en un escenario donde ya esta activada la tarjeta
+     *
+     */
+    @Test
+    public void testActiveCard_CardAlreadyActive() {
+        try {
+            CardRepository cardRepository = mock(CardRepository.class);
+            CardService cardService = new CardService(cardRepository);
+            CardEntity existingCard = new CardEntity();
+            existingCard.setIdCard("1234567890123456");
+            existingCard.setState("AC");
+            existingCard.setBalance(0.0F);
+            existingCard.setExpirationDate("01/2026");
+            when(cardRepository.buscardCardXId(anyString())).thenReturn(existingCard);
+            // Arrange
+            String json = "{\"idCard\": \"1234567890123456\"}";
+            String result = cardService.activeCard(json);
+            assertEquals("LA TARJETA YA SE ENCUENTRA ACTIVADA", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO ACTIVAR : "+e.getMessage());
+        }
+    }
+
+
+    /**
+     *   * este metodo de activar tarjeta verifica que en un escenario donde no halla id
+     */
+    @Test
+    public void testActiveCard_IdEmpty() {
+        try {
+            String json = "{\"idCard\": \"\"}";
+            String result = cardService.activeCard(json);
+            assertEquals("EL KEY DE idCard NO CUMPLE CON EL FORMATO , VUELVE A INGRESARLO NUEVAMENTE", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO ACTIVAR : "+e.getMessage());
+        }
+    }
+
+    /**
+     * este metodo de activar tarjeta verifica que en un escenario donde no exista la tarjeta
+     */
+    @Test
+    public void testActiveCard_IdNotExist() {
+        try {
+            String json = "{\"idCard\": \"1234567890123456\"}";
+            String result = cardService.activeCard(json);
+            assertEquals("NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO ACTIVAR : "+e.getMessage());
+        }
+    }
+
+    /**
+     * este metodo de activar tarjeta verifica que en un escenario donde la tarjeta no tenga el formato correspondiente
+     */
+    @Test
+    public void testActiveCard_InvalidId() {
+        try {
+            String json = "{\"idCard\": \"123456789012345P\"}";
+            String result = cardService.activeCard(json);
+            assertEquals("EL KEY DE idCard NO CUMPLE CON EL FORMATO , VUELVE A INGRESARLO NUEVAMENTE", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO ACTIVAR : "+e.getMessage());
+        }
+    }
+
+
+
+    /**
+     * este metodo de bloquear tarjeta verifica que en un escenario favorable se puede bloquear la tarjeta
+     */
+    @Test
+    public void testBlockCardXValid() {
+        try {
             cardService = new CardService();
-            Card_Repository cardRepository = mock(Card_Repository.class);
+            CardRepository cardRepository = mock(CardRepository.class);
             CardService cardService = new CardService(cardRepository);
-
-            // Caso 1: JSON inválido
-            String invalidJson = "invalid_json_format";
-            String result1 = cardService.activeCard(invalidJson);
-            assertEquals("NO INGRESASTE UN JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON", result1);
-
-            // Caso 2: ID de tarjeta no válido
-            String invalidCardId = "{\"idCard\":\"12345\"}";
-            String result2 = cardService.activeCard(invalidCardId);
-            assertEquals("EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO O NO INGRESO LOS 16 DÍGITOS DE LA TARJETA", result2);
-
-            // Caso 3: Tarjeta no existe en la base de datos
-            String validCardJson = "{\"idCard\":\"1234567890123456\"}";
-            when(cardRepository.buscardCardXId(anyString())).thenReturn(null);
-            String result3 = cardService.activeCard(validCardJson);
-            assertEquals("NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS", result3);
-
-            // Caso 4: Tarjeta ya está activada
-            Card_Entity existingCard = new Card_Entity();
+            CardEntity existingCard = new CardEntity();
             existingCard.setIdCard("1234567890123456");
-            existingCard.setState("AC"); // Tarjeta activa
+            existingCard.setState("IN");
+            existingCard.setBalance(0.0F);
+            existingCard.setExpirationDate("01/2026");
             when(cardRepository.buscardCardXId(anyString())).thenReturn(existingCard);
-            String result4 = cardService.activeCard(validCardJson);
-            assertEquals("LA TARJETA YA SE ENCUENTRA ACTIVADA", result4);
-
-        } catch (JsonSyntaxException e) {
+            String idCard = "1234567890123456";
+            String result = cardService.bloqueoCard(idCard);
+            assertEquals(result, "TARJETA BLOQUEADA");
+        }catch (Exception e){
             e.printStackTrace();
-            System.out.println("FORMATO JSON INVALIDO : "+e.getMessage());
-        } catch (NullPointerException e) {
-            System.err.println("Se ha producido una NullPointerException: " + e.getMessage());
-        } catch (Exception e){
-            System.err.println("Hubo un error al momento de ejecutar la aplicación: " + e.getClass().getName());
+            System.out.println("LA TARJETA NO SE PUDO BLOQUEAR : "+e.getMessage());
+        }
+    }
+
+
+    /**
+     * este metodo de activar tarjeta verifica que en un escenario donde el id de la tarjeta no tenga formato valido
+     */
+    @Test
+    public void testBloqueoCardXInvalidId() {
+        try {
+            String idCard = "1234a56789";
+            String result = cardService.bloqueoCard(idCard);
+            assertEquals("EL ID QUE INGRESASTE NO CUMPLE CON LAS CONDICCIONES , VUELVE INGRESARLO", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO BLOQUEAR : "+e.getMessage());
+        }
+
+    }
+
+    /**
+     * este metodo de activar tarjeta verifica que en un escenario donde el id de la tarjeta no tenga formato vacio
+     */
+    @Test
+    public void testBloqueoCardXIdEmpty() {
+        try {
+            String idCard = "";
+            String result = cardService.bloqueoCard(idCard);
+            assertEquals("EL ID QUE INGRESASTE NO CUMPLE CON LAS CONDICCIONES , VUELVE INGRESARLO", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO BLOQUEAR : "+e.getMessage());
         }
 
     }
 
 
-
-
+    /**
+     * este metodo de activar tarjeta verifica que en un escenario donde el id no iene los 16 digitos
+     */
     @Test
-    public void testBloqueoCard() {
-        String cambio;
+    public void testBloqueoCardXInvalidLengthId() {
         try {
-            // Caso 1: Tarjeta válida e inactiva
-            Card_Entity validCard = new Card_Entity();
-            validCard.setIdCard("1234567890123456");
-            validCard.setState("IN"); // Tarjeta inactiva
-            when(cardRepository.buscardCardXId("1234567890123456")).thenReturn(validCard);
-            String validCardJson = "{\"idCard\":\"1234567890123456\"}";
-            String result = cardService.bloqueoCard(validCardJson);
-
-            assertEquals("TARJETA BLOQUEADA", result);
-
-            // Caso 2: Tarjeta válida pero ya bloqueada
-            Card_Entity blockedCard = new Card_Entity();
-            blockedCard.setIdCard("1234567890123457");
-            blockedCard.setState("BL");
-            when(cardRepository.buscardCardXId("1234567890123457")).thenReturn(blockedCard);
-            String blockedCardJson = "{\"idCard\":\"1234567890123457\"}";
-            cambio = cardService.bloqueoCard(blockedCardJson);
-            assertEquals("YA SE ENCUENTRA BLOQUEADA ESTA TARJETA", cambio);
-
-            // Caso 3: Tarjeta con formato inválido
-            String invalidCardJson = "invalid_json_format";
-            cambio = cardService.bloqueoCard(invalidCardJson);
-            assertEquals("NO INGRESASTE UN JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON", cambio);
-
-            // Caso 4: Tarjeta inexistente en la base de datos
-            when(cardRepository.buscardCardXId("9999999999999999")).thenReturn(null);
-            String nonExistentCardJson = "{\"idCard\":\"9999999999999999\"}";
-            cambio = cardService.bloqueoCard(nonExistentCardJson);
-            assertEquals("NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS", cambio);
-
-
-
-        } catch (JsonSyntaxException e) {
+            String idCard = "12345";
+            String result = cardService.bloqueoCard(idCard);
+            assertEquals("EL ID QUE INGRESASTE NO CUMPLE CON LAS CONDICCIONES , VUELVE INGRESARLO", result);
+        }catch (Exception e){
             e.printStackTrace();
-            cambio = "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, SOLO TIPO NUMÉRICO O NO INGRESO LOS 16 DÍGITOS DE LA TARJETA";
-            System.out.println("FORMATO JSON INVALIDO : "+e.getMessage());
-        }
-        catch (Exception e){
-            e.printStackTrace();
-            cambio = "HUBO UN ERROR AL BLOQUEAR LA TARJETA DE CRÉDITO";
-            System.out.println("Hubo un error al bloquear la tarjeta de credito : "+e.getMessage());
+            System.out.println("LA TARJETA NO SE PUDO BLOQUEAR : "+e.getMessage());
         }
     }
 
 
+    /**
+     * este metodo de activar tarjeta verifica que en un escenario donde el id no iene los 16 digitos
+     */
     @Test
-    public void bloqueoCardXCasosXDesfavoraBle() {
+    public void testBloqueoCardXIdNotExist() {
         try {
-            // Caso 1: Bloqueo exitoso de una tarjeta activa
-            String validJson1 = "{\"idCard\":\"1234567890123456\"}";
-            Card_Entity activeCard = new Card_Entity();
-            activeCard.setState("AC"); // Tarjeta activa
-            Card_Repository cardRepository1 = mock(Card_Repository.class);
-            CardService cardService1 = new CardService(cardRepository1);
-            when(cardRepository1.buscardCardXId(anyString())).thenReturn(activeCard);
-            String result1 = cardService1.bloqueoCard(validJson1);
-            assertEquals("TARJETA BLOQUEADA", result1);
-            verify(cardRepository1, times(1)).buscardCardXId(anyString());
-            verify(cardRepository1, times(1)).saveAndFlush(any(Card_Entity.class));
-            Mockito.verifyNoMoreInteractions(cardRepository1);
-
-            // Caso 2: Intento de bloqueo en una tarjeta que ya está bloqueada
-            String validJson2 = "{\"idCard\":\"1234567890123456\"}";
-            Card_Entity blockedCard = new Card_Entity();
-            blockedCard.setState("BL"); // Tarjeta bloqueada
-            Card_Repository cardRepository2 = mock(Card_Repository.class);
-            CardService cardService2 = new CardService(cardRepository2);
-            when(cardRepository2.buscardCardXId(anyString())).thenReturn(blockedCard);
-            String result2 = cardService2.bloqueoCard(validJson2);
-            assertEquals("YA SE ENCUENTRA BLOQUEADA ESTA TARJETA", result2);
-            verify(cardRepository2, times(1)).buscardCardXId(anyString());
-            Mockito.verifyNoMoreInteractions(cardRepository2);
-
-            // Caso 3: Intento de bloqueo en una tarjeta que no existe
-            String validJson3 = "{\"idCard\":\"1234567890123456\"}";
-            Card_Repository cardRepository3 = mock(Card_Repository.class);
-            CardService cardService3 = new CardService(cardRepository3);
-            when(cardRepository3.buscardCardXId(anyString())).thenReturn(null);
-            String result3 = cardService3.bloqueoCard(validJson3);
-            assertEquals("NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS", result3);
-            verify(cardRepository3, times(1)).buscardCardXId(anyString());
-            Mockito.verifyNoMoreInteractions(cardRepository3);
-
-            // Caso 4: Intento de bloqueo con JSON inválido
-            String invalidJson = "invalid_json_format";
-            Card_Repository cardRepository4 = mock(Card_Repository.class);
-            CardService cardService4 = new CardService(cardRepository4);
-            String result4 = cardService4.bloqueoCard(invalidJson);
-            assertEquals("NO INGRESASTE UN JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON", result4);
-            Mockito.verifyNoInteractions(cardRepository4);
-        } catch (Exception e) {
-            System.err.println("Hubo un error al ejecutar la prueba: " + e.getClass().getName());
+            String idCard = "1234567890123056";
+            String result = cardService.bloqueoCard(idCard);
+            assertEquals("NO EXISTE EL ID DE LA TARJETA EN LA BASE DE DATOS", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO BLOQUEAR : "+e.getMessage());
         }
     }
 
-
-
+    /**
+     * este metodo de activar tarjeta verifica que en un escenario donde el la tarjeta ya esta bloqueada
+     */
     @Test
-    public void testRecargarBalance() {
+    public void testBloqueoCard_CardAlreadyBlocked() {
         try {
+            cardService = new CardService();
+            CardRepository cardRepository = mock(CardRepository.class);
+            CardService cardService = new CardService(cardRepository);
+            CardEntity existingCard = new CardEntity();
+            existingCard.setIdCard("1234567890123456");
+            existingCard.setState("BL");
+            existingCard.setBalance(0.0F);
+            existingCard.setExpirationDate("01/2026");
+            when(cardRepository.buscardCardXId(anyString())).thenReturn(existingCard);
+            String idCard = "1234567890123456";
+            String result = cardService.bloqueoCard(idCard);
+            assertEquals(result, "YA SE ENCUENTRA BLOQUEADA ESTA TARJETA");
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO BLOQUEAR : "+e.getMessage());
+        }
 
-            // Caso 1: JSON válido y datos válidos
-            Card_Entity  validCard = new Card_Entity();
-            validCard.setIdCard("1234567890123456");
-            validCard.setState("AC"); // Tarjeta activa
-            validCard.setBalance(100.0f);
-            when(cardRepository.buscardCardXId("1234567890123456")).thenReturn(validCard);
+    }
 
+
+    /**
+     * este metodo de activar tarjeta verifica que en un escenario donde el id de la tarjeta es null
+     */
+    @Test
+    public void testBloqueoCard_NoId() {
+        try {
+            String result = cardService.bloqueoCard(null);
+            assertEquals("EL ID QUE INGRESASTE NO CUMPLE CON LAS CONDICCIONES , VUELVE INGRESARLO", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO BLOQUEAR : "+e.getMessage());
+        }
+
+    }
+
+
+    /**
+     * este metodo de recargar balance esta en un escenario favorable se verifica si se recarga la tarjeta
+     */
+    @Test
+    public void testRecargarBalanceXValid() {
+        try {
+            cardService = new CardService();
+            CardRepository cardRepository = mock(CardRepository.class);
+            CardService cardService = new CardService(cardRepository);
+            CardEntity existingCard = new CardEntity();
+            existingCard.setIdCard("1234567890123456");
+            existingCard.setState("AC");
+            existingCard.setBalance(0.0F);
+            existingCard.setExpirationDate("01/2026");
+            when(cardRepository.buscardCardXId(anyString())).thenReturn(existingCard);
             String validJson = "{\"idCard\":\"1234567890123456\", \"balance\":\"50.0\"}";
             String result = cardService.recargarBalance(validJson);
-            assertEquals("SU TARJETA SE HA RECARGADO", result);
-            assertEquals(150.0f, validCard.getBalance()); // Verifica que el saldo se haya actualizado correctamente
-
-            // Caso 2: Tarjeta bloqueada
-            Card_Entity blockedCard = new Card_Entity();
-            blockedCard.setIdCard("1234567890123457");
-            blockedCard.setState("BL"); // Tarjeta bloqueada
-            when(cardRepository.buscardCardXId("1234567890123457")).thenReturn(blockedCard);
-
-            String blockedCardJson = "{\"idCard\":\"1234567890123457\", \"balance\":\"50.0\"}";
-            String resultBlocked = cardService.recargarBalance(blockedCardJson);
-            assertEquals("TARJETA BLOQUEADA O INACTIVA", resultBlocked);
-
-            // Caso 3: JSON inválido
-            String invalidJson = "invalid_json_format";
-            String resultInvalidJson = cardService.recargarBalance(invalidJson);
-            assertEquals("NO INGRESASTE UN JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON", resultInvalidJson);
-
-            // Caso 4: Datos inválidos
-            String invalidDataJson = "{\"idCard\":\"1234567890123458\", \"balance\":\"invalid_balance\"}";
-            String resultInvalidData = cardService.recargarBalance(invalidDataJson);
-            assertEquals("EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, DEBE INGRESAR SOLO 16 DÍGITOS PARA EL ID DE LA TARJETA", resultInvalidData);
-
-            // Caso 5: Tarjeta no existe en la base de datos
-            when(cardRepository.buscardCardXId("9999999999999999")).thenReturn(null);
-
-            String nonExistentCardJson = "{\"idCard\":\"9999999999999999\", \"balance\":\"50.0\"}";
-            String resultNonExistentCard = cardService.recargarBalance(nonExistentCardJson);
-            assertEquals("TARJETA NO EXISTE EN LA BASE DE DATOS", resultNonExistentCard);
-
-        }catch (JsonSyntaxException e) {
+            assertEquals(result, "SU TARJETA SE HA RECARGADO");
+        }catch (Exception e){
             e.printStackTrace();
-            System.out.println("FORMATO JSON INVALIDO : "+e.getMessage());
+            System.out.println("LA TARJETA NO SE PUDO RECARGAR : "+e.getMessage());
         }
-        catch (Exception e){
+    }
+
+
+    /**
+     * este metodo de recargar balance esta en un escenario se verifica si el json es incorrecto
+     */
+    @Test
+    public void testRecargarBalance_InvalidKey() {
+        try {
+            cardService = new CardService();
+            CardRepository cardRepository = mock(CardRepository.class);
+            CardService cardService = new CardService(cardRepository);
+            CardEntity existingCard = new CardEntity();
+            existingCard.setIdCard("1234567890123456");
+            existingCard.setState("AC");
+            existingCard.setBalance(0.0F);
+            existingCard.setExpirationDate("01/2026");
+            when(cardRepository.buscardCardXId(anyString())).thenReturn(existingCard);
+            String json = "{\"qwe\": \"1234567890123456\", \"nombre\": \"50.0\"}";
+            String result = cardService.recargarBalance(json);
+            assertEquals("NO INGRESASTE UN JSON O NO COLOCASTE BIEN EL KEY DEL JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON", result);
+        }catch (Exception e){
             e.printStackTrace();
-            System.out.println("Hubo un error al momento de recargar su tarjeta de credito : "+e.getMessage());
+            System.out.println("LA TARJETA NO SE PUDO RECARGAR : "+e.getMessage());
         }
-
     }
 
+    /**
+     * este metodo de recargar balance esta en un escenario se verifica si id no existe de la tarjeta
+     */
     @Test
-    public void testRecargarBalanceEscenarioDesfavorable() {
+    public void testRecargarBalance_IdNotExist() {
         try {
-            // Caso 1: JSON no válido
-            String invalidJson = "invalid_json_string";
-            Card_Repository cardRepository1 = mock(Card_Repository.class);
-            CardService cardService1 = new CardService(cardRepository1);
-
-            Object[] result1 = new Object[]{cardService1.recargarBalance(invalidJson)};
-            Object[] expectedResult1 = {"NO INGRESASTE UN JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON", "", ""};
-            assertEquals(expectedResult1[0], result1[0]);
-
-            // Verificar que no se haya interactuado con cardRepository1
-            Mockito.verifyNoInteractions(cardRepository1);
-
-            // Caso 2: ID de tarjeta inválido (menos de 16 dígitos)
-            String validJson = "{\"idCard\":\"12345\",\"balance\":\"100.0\"}";
-            Card_Repository cardRepository2 = mock(Card_Repository.class);
-            CardService cardService2 = new CardService(cardRepository2);
-
-            Object[] result2 = new Object[]{cardService2.recargarBalance(validJson)};
-            Object[] expectedResult2 = {"EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, DEBE INGRESAR SOLO 16 DÍGITOS PARA EL ID DE LA TARJETA", "", ""};
-            assertEquals(expectedResult2[0], result2[0]);
-
-            // Verificar que no se haya interactuado con cardRepository2
-            Mockito.verifyNoInteractions(cardRepository2);
-
-            // Caso 3: Tarjeta no encontrada en el repositorio
-            String validJson3 = "{\"idCard\":\"1234567890123456\",\"balance\":\"100.0\"}";
-            Card_Repository cardRepository3 = mock(Card_Repository.class);
-            CardService cardService3 = new CardService(cardRepository3);
-
-            when(cardRepository3.buscardCardXId(anyString())).thenReturn(null);
-
-            Object[] result3 =new Object[]{cardService3.recargarBalance(validJson3)};
-            Object[] expectedResult3 = {"TARJETA NO EXISTE EN LA BASE DE DATOS", "", ""};
-            assertEquals(expectedResult3[0], result3[0]);
-
-            // Verificar que se llamó a buscardCardXId con el ID de tarjeta válido
-            verify(cardRepository3, times(1)).buscardCardXId(eq("1234567890123456"));
-            Mockito.verifyNoMoreInteractions(cardRepository3);
-
-            // Caso 4: Tarjeta bloqueada o inactiva
-            String validJson4 = "{\"idCard\":\"1234567890123456\",\"balance\":\"100.0\"}";
-            Card_Repository cardRepository4 = mock(Card_Repository.class);
-            CardService cardService4 = new CardService(cardRepository4);
-            Card_Entity blockedCard = new Card_Entity();
-            blockedCard.setState("BL");
-
-            when(cardRepository4.buscardCardXId(eq("1234567890123456"))).thenReturn(blockedCard);
-
-            Object[] result4 = new String[]{cardService4.recargarBalance(validJson4)};
-            Object[] expectedResult4 = {"TARJETA BLOQUEADA O INACTIVA", "", ""};
-            assertEquals(expectedResult4[0], result4[0]);
-
-            // Verificar que se llamó a buscardCardXId con el ID de tarjeta válido
-            verify(cardRepository4, times(1)).buscardCardXId(eq("1234567890123456"));
-            Mockito.verifyNoMoreInteractions(cardRepository4);
-        } catch (Exception e) {
-            System.err.println("Hubo un error al ejecutar la prueba: " + e.getClass().getName());
+            String json = "{\"idCard\": \"1234567890123456\", \"balance\": \"50.0\"}";
+            String result = cardService.recargarBalance(json);
+            assertEquals("TARJETA NO EXISTE EN LA BASE DE DATOS", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO RECARGAR : "+e.getMessage());
         }
     }
 
 
-
+    /**
+     * este metodo de recargar balance esta en un escenario se verifica si id esta vacio
+     */
     @Test
-    public void testConsultarBalance() {
-        // Caso 1: Tarjeta válida y activa
-        Card_Entity activeCard = new Card_Entity();
-        activeCard.setIdCard("1234567890123456");
-        activeCard.setState("AC"); // Tarjeta activa
-        activeCard.setBalance(100.0f);
-        when(cardRepository.buscardCardXId("1234567890123456")).thenReturn(activeCard);
-
-        Object[] resultActive = cardService.consultarBalance("1234567890123456");
-        assertEquals("cardId : 1234567890123456", resultActive[0]);
-        assertEquals("balance : 100.0", resultActive[1]);
-        assertEquals("ESTADO DE TARJETA : ACTIVO", resultActive[2]);
-
-        // Caso 2: Tarjeta válida e inactiva
-        Card_Entity inactiveCard = new Card_Entity();
-        inactiveCard.setIdCard("1234567890123457");
-        inactiveCard.setState("IN"); // Tarjeta inactiva
-        inactiveCard.setBalance(50.0f);
-        when(cardRepository.buscardCardXId("1234567890123457")).thenReturn(inactiveCard);
-
-        Object[] resultInactive = cardService.consultarBalance("1234567890123457");
-        assertEquals("cardId : 1234567890123457", resultInactive[0]);
-        assertEquals("balance : 50.0", resultInactive[1]);
-        assertEquals("ESTADO DE TARJETA : INACTIVO", resultInactive[2]);
-
-        // Caso 3: Tarjeta válida y bloqueada
-        Card_Entity blockedCard = new Card_Entity();
-        blockedCard.setIdCard("1234567890123458");
-        blockedCard.setState("BL"); // Tarjeta bloqueada
-        blockedCard.setBalance(0.0f);
-        when(cardRepository.buscardCardXId("1234567890123458")).thenReturn(blockedCard);
-
-        Object[] resultBlocked = cardService.consultarBalance("1234567890123458");
-        assertEquals("cardId : 1234567890123458", resultBlocked[0]);
-        assertEquals("balance : 0.0", resultBlocked[1]);
-        assertEquals("ESTADO DE TARJETA : BLOQUEADO", resultBlocked[2]);
-
-        // Caso 4: Tarjeta no existe en la base de datos
-        when(cardRepository.buscardCardXId("9999999999999999")).thenReturn(null);
-
-        Object[] resultNonExistentCard = cardService.consultarBalance("9999999999999999");
-        assertEquals("NO EXISTE LA TARJETA", resultNonExistentCard[0]);
-        assertEquals("", resultNonExistentCard[1]);
-        assertEquals("", resultNonExistentCard[2]);
-
-        // Caso 5: Tarjeta con formato de ID inválido
-        Object[] resultInvalidFormat = cardService.consultarBalance("invalid_id_format");
-        assertEquals("EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, DEBE INGRESAR SOLO 16 DÍGITOS PARA EL ID DE LA TARJETA", resultInvalidFormat[0]);
-        assertEquals("", resultInvalidFormat[1]);
-        assertEquals("", resultInvalidFormat[2]);
+    public void testRecargarBalance_IdEmpty() {
+        try {
+            String json = "{\"idCard\": \"\", \"balance\": \"50.0\"}";
+            String result = cardService.recargarBalance(json);
+            assertEquals("EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, DEBE INGRESAR SOLO 16 DÍGITOS PARA EL ID DE LA TARJETA", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO RECARGAR : "+e.getMessage());
+        }
     }
 
 
+    /**
+     * este metodo de recargar balance esta en un escenario se verifica si id es null
+     */
     @Test
-    public void testConsultarBalanceXDesfavorable() {
+    public void testRecargarBalance_NoId() {
         try {
-            // Caso 1: ID de tarjeta inválido (menos de 16 dígitos)
-            String invalidIdCard1 = "12345";
-            Card_Repository cardRepository1 = mock(Card_Repository.class);
-            CardService cardService1 = new CardService(cardRepository1);
+            String result = cardService.recargarBalance(null);
+            assertEquals("NO INGRESASTE UN JSON O NO COLOCASTE BIEN EL KEY DEL JSON, INGRESA NUEVAMENTE LA INFORMACIÓN COMO JSON", result);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE PUDO RECARGAR : "+e.getMessage());
+        }
+    }
 
-            Object[] result1 = cardService1.consultarBalance(invalidIdCard1);
-            Object[] expectedResult1 = {
-                    "EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, DEBE INGRESAR SOLO 16 DÍGITOS PARA EL ID DE LA TARJETA",
-                    "",
-                    ""
-            };
-            assertArrayEquals(expectedResult1, result1);
 
-            // Verificar que no se haya interactuado con cardRepository1
-            Mockito.verifyNoInteractions(cardRepository1);
+    /**
+     * este metodo de consulta el balance esta en un escenario favorable consulta su saldo
+     */
+    @Test
+    public void testConsultarBalanceValid() {
+        try {
+            cardService = new CardService();
+            CardRepository cardRepository = mock(CardRepository.class);
+            CardService cardService = new CardService(cardRepository);
+            CardEntity existingCard = new CardEntity();
+            existingCard.setIdCard("1234567890123456");
+            existingCard.setState("AC");
+            existingCard.setBalance(0.0F);
+            existingCard.setExpirationDate("01/2026");
+            when(cardRepository.buscardCardXId(anyString())).thenReturn(existingCard);
+            Optional<?> respuesta = Optional.empty();
+            respuesta = cardService.consultarBalance("1234567890123456");
+            if (respuesta.isPresent()) {
+                Object valor = respuesta.get();
+                CardEntity entidad = (CardEntity) valor;
+                assertEquals(existingCard, entidad);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE ENCONTRO : "+e.getMessage());
+        }
+    }
 
-            // Caso 2: Tarjeta no encontrada en el repositorio
-            String validIdCard = "1234567890123456"; // Supongamos que esta tarjeta existe
-            Card_Repository cardRepository2 = mock(Card_Repository.class);
-            CardService cardService2 = new CardService(cardRepository2);
 
-            when(cardRepository2.buscardCardXId(eq(validIdCard))).thenReturn(null);
+    /**
+     * este metodo de consulta el balance esta en un escenario desfavorable
+     El id del producto no es valido , no es tipo numerico , contiene al menos una
+    letra.
+     */
+    @Test
+    public void testConsultarBalance_InvalidId() {
+        try {
+            Optional<?> respuesta = Optional.empty();
+            respuesta = cardService.consultarBalance("123456789012345E");
+            if (respuesta.isPresent()) {
+                Object valor = respuesta.get();
+                String cadena = (String) valor;
+                assertEquals("EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, DEBE INGRESAR SOLO 16 DÍGITOS PARA EL ID DE LA TARJETA", cadena);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE ENCONTRO : "+e.getMessage());
+        }
 
-            Object[] result2 = cardService2.consultarBalance(validIdCard);
-            Object[] expectedResult2 = {"NO EXISTE LA TARJETA", "", ""};
-            assertArrayEquals(expectedResult2, result2);
+    }
 
-            // Verificar que se llamó a buscardCardXId con el ID de tarjeta válido
-            verify(cardRepository2, times(1)).buscardCardXId(eq(validIdCard));
-            Mockito.verifyNoMoreInteractions(cardRepository2);
-        } catch (Exception e) {
-            System.err.println("Hubo un error al ejecutar la prueba: " + e.getClass().getName());
+    /**
+     * este metodo de consulta el balance esta en un escenario desfavorable
+     El id es numerico pero no tiene 6 digitos
+     */
+    @Test
+    public void testConsultarBalance_InvalidLengthId() {
+        try {
+            String idCard = "12345";
+            Optional<?> result = cardService.consultarBalance(idCard);
+            assertTrue(result.isPresent());
+            String estadoConsulta = (String) result.get();
+            assertEquals("EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, DEBE INGRESAR SOLO 16 DÍGITOS PARA EL ID DE LA TARJETA", estadoConsulta);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE ENCONTRO : "+e.getMessage());
+        }
+    }
+
+    /**
+     * este metodo de consulta el balance esta en un escenario desfavorable
+     El id ES NULLO
+     */
+    @Test
+    public void testConsultarBalance_NoId() {
+        try {
+            Optional<?> result = cardService.consultarBalance(null);
+            assertTrue(result.isPresent());
+            String estadoConsulta = (String) result.get();
+            assertEquals("EL DATO QUE INGRESO NO ES VÁLIDO PARA REALIZAR LA OPERACIÓN, DEBE INGRESAR SOLO 16 DÍGITOS PARA EL ID DE LA TARJETA", estadoConsulta);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("LA TARJETA NO SE ENCONTRO : "+e.getMessage());
         }
     }
 

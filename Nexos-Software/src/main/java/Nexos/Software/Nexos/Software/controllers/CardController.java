@@ -1,13 +1,15 @@
 package Nexos.Software.Nexos.Software.controllers;
 
 
-import Nexos.Software.Nexos.Software.entitys.Card_Entity;
+import Nexos.Software.Nexos.Software.entitys.CardEntity;
 import Nexos.Software.Nexos.Software.services.CardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
 
 
 /**
@@ -20,13 +22,13 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/card")
 public class CardController {
-
-
     /**
      * Crea una nueva instancia (objeto) de la clase Card_Service
      * y asigna esta instancia a la variable cardService
      */
     CardService cardService = new CardService();
+
+    CardEntity cardEntity = new CardEntity();
 
 
     /**
@@ -49,22 +51,26 @@ public class CardController {
     @GetMapping("/{productId}/number")
     public ResponseEntity<?> createCard(@PathVariable String productId){
         try {
-            Card_Entity newCard = new Card_Entity();
-            newCard  = cardService.createCard(productId);
-            if(newCard == null){
-                return ResponseEntity.ok("NO SE CREÓ LA TARJETA -  VERIFIQUE LA INFORMACIÓN INGRESADA (DEBEN SER 6 DÍGITOS)");
-            }
-            if (   newCard.getIdCard() != null) {
-                return ResponseEntity.ok(newCard);
-            }else{
-                return ResponseEntity.ok("NO SE CREÓ LA TARJETA -  VERIFIQUE LA INFORMACIÓN INGRESADA (DEBEN SER 6 DÍGITOS)");
+            Optional<?> respuesta = Optional.empty();
+            respuesta  = cardService.CreateCard(productId);
+            if (respuesta.isPresent()) {
+                Object valor = respuesta.get();
+                if (valor instanceof String) {
+                    String cadena = (String) valor;
+                    return ResponseEntity.ok(cadena);
+                } else if (valor instanceof CardEntity) {
+                    CardEntity entidad = (CardEntity) valor;
+                    return ResponseEntity.ok(entidad);
+                }
+            } else {
+                return ResponseEntity.ok("NO SE PUDO HACER LA OPERACION");
             }
         }catch (Exception e){
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NO SE CREÓ LA TARJETA - HUBO UN ERROR VERIFIQUE LA INFORMACIÓN INGRESADA", e);
         }
+        return null;
     }
-
 
 
     /**
@@ -81,9 +87,11 @@ public class CardController {
             return ResponseEntity.ok(estado);
         }catch (Exception e){
             e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NO SE ACTUALIZÓ LA TARJETA", e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "HUBO UN ERROR Y NO SE ACTIVO LA TARJETA", e);
         }
     }
+
+
 
 
     /**
@@ -95,7 +103,6 @@ public class CardController {
     @DeleteMapping("/{cardId}")
     public ResponseEntity<String> deleteCard(@PathVariable String cardId){
         String estado = "";
-        Card_Entity newCard = new Card_Entity();
         try {
             estado = cardService.bloqueoCard(cardId);
             return ResponseEntity.ok(estado);
@@ -104,6 +111,7 @@ public class CardController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NO SE BLOQUEÓ LA TARJETA", e);
         }
     }
+
 
 
     /**
@@ -124,7 +132,6 @@ public class CardController {
         }
     }
 
-
     /**
      * Consulta el saldo de una tarjeta.
      *
@@ -133,22 +140,28 @@ public class CardController {
      */
     @GetMapping("/balance/{cardId}")
     public ResponseEntity<?> consultarBalance(@PathVariable String cardId){
-        Card_Entity card = new Card_Entity();
-        Object[] consulta = new Object[3];
+        Optional<?> respuesta = Optional.empty();
         try {
-            consulta = cardService.consultarBalance(cardId);
-            if(consulta[1].toString().equals("")){
-                return ResponseEntity.ok(consulta[0]);
+            respuesta  = cardService.consultarBalance(cardId);
+            Object valor = respuesta.get();
+            if (respuesta.isPresent()) {
+                if (valor instanceof String) {
+                    String cadena = (String) valor;
+                    return ResponseEntity.ok(cadena);
+                }if(valor instanceof CardEntity){
+                    CardEntity entidad = (CardEntity) valor;
+                    return ResponseEntity.ok(entidad);
+                }
             }else{
-                return ResponseEntity.ok(consulta);
+                return ResponseEntity.ok("NO SE PUDO RETORNAR UN VALOR");
             }
         }catch (Exception e){
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "NO SE ENCONTRÓ EL REGISTRO", e);
         }
-
-
+        return null;
     }
+
 
 
 
